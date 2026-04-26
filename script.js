@@ -105,3 +105,27 @@ drawLotBtn.addEventListener('click', () => {
         `;
     }
 });
+
+// --- 主題切換邏輯 ---
+const themeToggleBtn = document.getElementById('theme-toggle');
+
+// 檢查瀏覽器是否已經有記住的主題偏好
+if (localStorage.getItem('theme') === 'light') {
+    document.body.classList.add('light-theme');
+    themeToggleBtn.innerText = '切換神秘午夜 🌙';
+}
+
+// 點擊按鈕時的切換事件
+themeToggleBtn.addEventListener('click', () => {
+    // 替 body 加上或移除 light-theme 的 class
+    document.body.classList.toggle('light-theme');
+
+    // 判斷當前狀態，更新按鈕文字並存入 localStorage
+    if (document.body.classList.contains('light-theme')) {
+        localStorage.setItem('theme', 'light');
+        themeToggleBtn.innerText = '切換神秘午夜 🌙';
+    } else {
+        localStorage.setItem('theme', 'dark');
+        themeToggleBtn.innerText = '切換明亮晨光 ☀️';
+    }
+});

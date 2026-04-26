@@ -4,28 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>命運中轉站 | Oracle's Decision Station</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="noise-overlay"></div>
 
     <div class="container py-5 content-wrapper">
+
+        <div class="text-end mb-4">
+            <button id="theme-toggle" class="btn btn-outline-secondary btn-sm rounded-pill shadow-sm">
+                切換明亮晨光 ☀️
+            </button>
+        </div>
+
         <header class="text-center mb-5">
             <h1 class="display-4 fw-bold mystical-title">命運中轉站</h1>
-            <p class="lead text-light">為你的日常選擇，尋找一絲宇宙的指引</p>
+            <p class="lead">為你的日常選擇，尋找一絲宇宙的指引</p>
         </header>
 
         <div class="row g-4">
+
             <div class="col-md-6">
                 <div class="card mystical-card h-100 text-center p-4">
                     <div class="card-body d-flex flex-column justify-content-center">
                         <h2 class="card-title mb-4">今日塔羅神諭</h2>
-                        <p class="card-text mb-4">抽取一張專屬塔羅，洞悉今日的愛情、事業與財運。</p>
-                        <button id="draw-tarot-btn" class="btn btn-mystical mt-auto mx-auto" data-bs-toggle="modal" data-bs-target="#resultModal">
-                            抽取塔羅
-                        </button>
+                        <p class="card-text mb-4 opacity-75">
+                            深呼吸，在心中默念你的問題，<br>
+                            由宇宙為你翻開今日的運勢卡牌。
+                        </p>
+                        <div class="mt-auto">
+                            <button id="draw-tarot-btn" class="btn btn-mystical px-5" data-bs-toggle="modal" data-bs-target="#resultModal">
+                                抽取塔羅
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -34,36 +50,50 @@
                 <div class="card mystical-card h-100 text-center p-4">
                     <div class="card-body d-flex flex-column justify-content-center">
                         <h2 class="card-title mb-4">日常決策神籤</h2>
-                        <div class="mb-3">
-                            <input type="text" id="user-question" class="form-control mystical-input" placeholder="例如：今天午餐吃什麼？">
+                        <p class="card-text mb-3 opacity-75">糾結「午餐吃什麼」或「要不要告白」嗎？</p>
+
+                        <div class="mb-4">
+                            <input type="text" id="user-question" class="form-control mystical-input" placeholder="在這裡輸入你的糾結問題...">
                         </div>
-                        <button id="draw-lot-btn" class="btn btn-mystical mt-auto mx-auto" data-bs-toggle="modal" data-bs-target="#resultModal">
-                            搖動籤筒
-                        </button>
+
+                        <div class="mt-auto">
+                            <button id="draw-lot-btn" class="btn btn-mystical px-5" data-bs-toggle="modal" data-bs-target="#resultModal">
+                                搖動籤筒
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
+
         </div>
 
         <footer class="text-center mt-5 disclaimer">
             <p>※ 本站結果僅供娛樂參考，命運的劇本仍由你親自書寫 ※</p>
+            <p class="small opacity-50">&copy; 2026 Oracle's Decision Station | NKNU SEM Project</p>
         </footer>
     </div>
 
-    <div class="modal fade" id="resultModal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content mystical-modal">
+            <div class="modal-content mystical-modal shadow-lg">
                 <div class="modal-header border-0">
-                    <h5 class="modal-title w-100 text-center" id="modal-title">命運的指引</h5>
+                    <h5 class="modal-title w-100 text-center fw-bold" id="modal-title">命運的指引</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body text-center" id="modal-body">
+                <div class="modal-body text-center p-4" id="modal-body">
+                    <div class="spinner-border text-info" role="status">
+                        <span class="visually-hidden">連結宇宙中...</span>
                     </div>
+                </div>
+                <div class="modal-footer border-0 justify-content-center pb-4">
+                    <button type="button" class="btn btn-sm btn-outline-light rounded-pill" data-bs-dismiss="modal">感謝宇宙指引</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <script src="script.js"></script>
 </body>
 </html>
