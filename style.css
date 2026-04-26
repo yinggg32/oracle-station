@@ -1,89 +1,186 @@
-/* 全局設定 */
-body {
-    background-color: #0b0c10; /* 深午夜藍 */
-    color: #c5c6c7;
-    font-family: 'Noto Serif TC', serif;
-    position: relative;
-    min-height: 100vh;
+:root {
+    /* 深色模式變數：午夜藍 */
+    --bg-color: #0d1117;
+    --text-color: #e6edf3;
+    --card-bg: rgba(30, 41, 59, 0.7);
+    --accent-color: #58a6ff;
+    --glow-color: rgba(88, 166, 255, 0.5);
+    --input-bg: rgba(13, 17, 23, 0.8);
+    --modal-bg: #161b22;
+    --border-color: rgba(255, 255, 255, 0.1);
 }
 
-/* 底片顆粒效果 (Film Grain) */
+body.light-theme {
+    /* 明亮模式變數：神秘羊皮紙 */
+    --bg-color: #fcfaf2;
+    --text-color: #3e3e3e;
+    --card-bg: rgba(255, 255, 255, 0.8);
+    --accent-color: #b08d57;
+    --glow-color: rgba(176, 141, 87, 0.3);
+    --input-bg: rgba(255, 255, 255, 0.8);
+    --modal-bg: #fdfdfd;
+    --border-color: rgba(176, 141, 87, 0.3);
+}
+
+/* ================= 全局設定 ================= */
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Noto Serif TC', serif;
+    transition: background-color 0.6s ease, color 0.6s ease;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* 增加層次感：背景光暈 */
+body::before {
+    content: "";
+    position: fixed;
+    top: -10%; left: -10%;
+    width: 40%; height: 40%;
+    background: radial-gradient(circle, var(--glow-color) 0%, transparent 70%);
+    z-index: -1;
+    filter: blur(80px);
+    transition: background 0.6s ease;
+}
+
+/* 底片顆粒效果 */
 .noise-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    pointer-events: none; /* 讓滑鼠點擊可以穿透 */
-    z-index: 0;
-    opacity: 0.05; /* 調整顆粒明顯程度 */
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: url('https://grainy-gradients.vercel.app/noise.svg');
+    opacity: 0.05;
+    pointer-events: none;
+    z-index: 9999;
 }
 
-.content-wrapper {
-    position: relative;
-    z-index: 1;
-}
-
-/* 標題特效 */
+/* ================= 標題與排版 ================= */
 .mystical-title {
-    color: #66fcf1; /* 發光青色 */
-    text-shadow: 0 0 10px rgba(102, 252, 241, 0.3);
+    font-weight: 700;
+    letter-spacing: 5px;
+    color: var(--accent-color);
+    text-shadow: 0 0 20px var(--glow-color);
+    transition: color 0.6s ease, text-shadow 0.6s ease;
 }
 
-/* 卡片設計 */
+.disclaimer {
+    font-size: 0.85rem;
+    opacity: 0.6;
+    transition: color 0.6s ease;
+}
+
+/* ================= 卡片設計 (玻璃擬態) ================= */
 .mystical-card {
-    background-color: #1f2833;
-    border: 1px solid #45a29e;
-    color: #fff;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: var(--card-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    color: var(--text-color);
+    transition: transform 0.3s ease, background-color 0.6s ease, border-color 0.6s ease, color 0.6s ease;
 }
 
 .mystical-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(69, 162, 158, 0.2);
+    box-shadow: 0 10px 30px var(--glow-color);
 }
 
-/* 按鈕設計 */
+/* ================= 按鈕設計 ================= */
 .btn-mystical {
-    background-color: transparent;
-    color: #45a29e;
-    border: 2px solid #45a29e;
-    border-radius: 30px;
-    padding: 10px 30px;
+    background: transparent;
+    color: var(--accent-color);
+    border: 1px solid var(--accent-color);
+    padding: 12px 40px;
+    border-radius: 50px;
     font-weight: bold;
+    letter-spacing: 2px;
     transition: all 0.3s ease;
 }
 
 .btn-mystical:hover {
-    background-color: #45a29e;
-    color: #0b0c10;
+    background: var(--accent-color);
+    color: var(--bg-color);
+    box-shadow: 0 0 20px var(--accent-color);
 }
 
-/* 輸入框設計 */
+/* ================= 輸入框設計 ================= */
 .mystical-input {
-    background-color: #0b0c10;
-    border: 1px solid #45a29e;
-    color: #fff;
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
     text-align: center;
+    transition: background-color 0.6s ease, color 0.6s ease, border-color 0.6s ease;
 }
 
 .mystical-input:focus {
-    background-color: #1f2833;
-    color: #fff;
-    border-color: #66fcf1;
-    box-shadow: 0 0 5px rgba(102, 252, 241, 0.5);
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 10px var(--glow-color);
+    outline: none;
 }
 
-/* 彈出視窗 (Modal) 設計 */
+/* ================= 彈出視窗 (Modal) ================= */
 .mystical-modal {
-    background-color: #1f2833;
-    color: #fff;
-    border: 1px solid #66fcf1;
+    background-color: var(--modal-bg);
+    color: var(--text-color);
+    border: 1px solid var(--accent-color);
+    border-radius: 15px;
+    transition: background-color 0.6s ease, color 0.6s ease, border-color 0.6s ease;
 }
 
-/* 警語設計 */
-.disclaimer {
-    font-size: 0.85rem;
-    opacity: 0.5;
+/* ================= 3D 翻牌動畫結構 ================= */
+.card-container {
+    perspective: 1000px;
+    width: 200px;
+    height: 320px;
+    margin: 0 auto;
+}
+
+.card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+}
+
+.card-inner.is-flipped {
+    transform: rotateY(180deg);
+}
+
+.card-front, .card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+
+/* 牌背設計 */
+.card-front {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 2px solid var(--accent-color);
+}
+
+.card-front::after {
+    content: "🔮";
+    font-size: 3rem;
+}
+
+/* 牌面設計 */
+.card-back {
+    transform: rotateY(180deg);
+}
+
+.card-back img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
