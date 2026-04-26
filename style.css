@@ -1,5 +1,4 @@
 :root {
-    /* 深色模式變數：午夜藍 */
     --bg-color: #0d1117;
     --text-color: #e6edf3;
     --card-bg: rgba(30, 41, 59, 0.7);
@@ -11,7 +10,6 @@
 }
 
 body.light-theme {
-    /* 明亮模式變數：神秘羊皮紙 */
     --bg-color: #fcfaf2;
     --text-color: #3e3e3e;
     --card-bg: rgba(255, 255, 255, 0.8);
@@ -22,30 +20,14 @@ body.light-theme {
     --border-color: rgba(176, 141, 87, 0.3);
 }
 
-/* ================= 全局設定 ================= */
 body {
     background-color: var(--bg-color);
     color: var(--text-color);
     font-family: 'Noto Serif TC', serif;
-    transition: background-color 0.6s ease, color 0.6s ease;
+    transition: all 0.6s ease;
     min-height: 100vh;
-    overflow-x: hidden;
-    position: relative;
 }
 
-/* 增加層次感：背景光暈 */
-body::before {
-    content: "";
-    position: fixed;
-    top: -10%; left: -10%;
-    width: 40%; height: 40%;
-    background: radial-gradient(circle, var(--glow-color) 0%, transparent 70%);
-    z-index: -1;
-    filter: blur(80px);
-    transition: background 0.6s ease;
-}
-
-/* 底片顆粒效果 */
 .noise-overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -55,132 +37,82 @@ body::before {
     z-index: 9999;
 }
 
-/* ================= 標題與排版 ================= */
 .mystical-title {
     font-weight: 700;
     letter-spacing: 5px;
     color: var(--accent-color);
     text-shadow: 0 0 20px var(--glow-color);
-    transition: color 0.6s ease, text-shadow 0.6s ease;
 }
 
-.disclaimer {
-    font-size: 0.85rem;
-    opacity: 0.6;
-    transition: color 0.6s ease;
-}
-
-/* ================= 卡片設計 (玻璃擬態) ================= */
 .mystical-card {
     background: var(--card-bg);
     backdrop-filter: blur(12px);
     border: 1px solid var(--border-color);
     border-radius: 20px;
-    color: var(--text-color);
-    transition: transform 0.3s ease, background-color 0.6s ease, border-color 0.6s ease, color 0.6s ease;
 }
 
-.mystical-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px var(--glow-color);
-}
-
-/* ================= 按鈕設計 ================= */
 .btn-mystical {
     background: transparent;
     color: var(--accent-color);
     border: 1px solid var(--accent-color);
-    padding: 12px 40px;
+    padding: 12px 30px;
     border-radius: 50px;
     font-weight: bold;
-    letter-spacing: 2px;
-    transition: all 0.3s ease;
+    transition: all 0.3s;
 }
 
 .btn-mystical:hover {
     background: var(--accent-color);
-    color: var(--bg-color);
-    box-shadow: 0 0 20px var(--accent-color);
+    color: white;
+    box-shadow: 0 0 15px var(--accent-color);
 }
 
-/* ================= 輸入框設計 ================= */
 .mystical-input {
-    background-color: var(--input-bg);
+    background: var(--input-bg);
     border: 1px solid var(--border-color);
     color: var(--text-color);
     text-align: center;
-    transition: background-color 0.6s ease, color 0.6s ease, border-color 0.6s ease;
 }
 
-.mystical-input:focus {
-    background-color: var(--card-bg);
-    color: var(--text-color);
-    border-color: var(--accent-color);
-    box-shadow: 0 0 10px var(--glow-color);
-    outline: none;
-}
-
-/* ================= 彈出視窗 (Modal) ================= */
-.mystical-modal {
-    background-color: var(--modal-bg);
-    color: var(--text-color);
-    border: 1px solid var(--accent-color);
-    border-radius: 15px;
-    transition: background-color 0.6s ease, color 0.6s ease, border-color 0.6s ease;
-}
-
-/* ================= 3D 翻牌動畫結構 ================= */
+/* 3D 翻牌 */
 .card-container {
     perspective: 1000px;
-    width: 200px;
-    height: 320px;
+    width: 150px;
+    height: 250px;
     margin: 0 auto;
 }
 
 .card-inner {
     position: relative;
-    width: 100%;
-    height: 100%;
-    text-align: center;
+    width: 100%; height: 100%;
     transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     transform-style: preserve-3d;
 }
 
-.card-inner.is-flipped {
-    transform: rotateY(180deg);
-}
+.card-inner.is-flipped { transform: rotateY(180deg); }
 
 .card-front, .card-back {
     position: absolute;
-    width: 100%;
-    height: 100%;
+    width: 100%; height: 100%;
     backface-visibility: hidden;
     border-radius: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
 
-/* 牌背設計 */
 .card-front {
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     border: 2px solid var(--accent-color);
 }
 
-.card-front::after {
-    content: "🔮";
-    font-size: 3rem;
-}
+.card-front::after { content: "🔮"; font-size: 2.5rem; }
 
-/* 牌面設計 */
-.card-back {
-    transform: rotateY(180deg);
-}
+.card-back { transform: rotateY(180deg); }
 
-.card-back img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+.card-back img { width: 100%; height: 100%; border-radius: 15px; object-fit: cover; }
+
+.mystical-modal {
+    background-color: var(--modal-bg);
+    color: var(--text-color);
+    border: 1px solid var(--accent-color);
 }
