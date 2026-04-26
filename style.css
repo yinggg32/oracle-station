@@ -1,0 +1,89 @@
+/* 全局設定 */
+body {
+    background-color: #0b0c10; /* 深午夜藍 */
+    color: #c5c6c7;
+    font-family: 'Noto Serif TC', serif;
+    position: relative;
+    min-height: 100vh;
+}
+
+/* 底片顆粒效果 (Film Grain) */
+.noise-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none; /* 讓滑鼠點擊可以穿透 */
+    z-index: 0;
+    opacity: 0.05; /* 調整顆粒明顯程度 */
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+.content-wrapper {
+    position: relative;
+    z-index: 1;
+}
+
+/* 標題特效 */
+.mystical-title {
+    color: #66fcf1; /* 發光青色 */
+    text-shadow: 0 0 10px rgba(102, 252, 241, 0.3);
+}
+
+/* 卡片設計 */
+.mystical-card {
+    background-color: #1f2833;
+    border: 1px solid #45a29e;
+    color: #fff;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.mystical-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(69, 162, 158, 0.2);
+}
+
+/* 按鈕設計 */
+.btn-mystical {
+    background-color: transparent;
+    color: #45a29e;
+    border: 2px solid #45a29e;
+    border-radius: 30px;
+    padding: 10px 30px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn-mystical:hover {
+    background-color: #45a29e;
+    color: #0b0c10;
+}
+
+/* 輸入框設計 */
+.mystical-input {
+    background-color: #0b0c10;
+    border: 1px solid #45a29e;
+    color: #fff;
+    text-align: center;
+}
+
+.mystical-input:focus {
+    background-color: #1f2833;
+    color: #fff;
+    border-color: #66fcf1;
+    box-shadow: 0 0 5px rgba(102, 252, 241, 0.5);
+}
+
+/* 彈出視窗 (Modal) 設計 */
+.mystical-modal {
+    background-color: #1f2833;
+    color: #fff;
+    border: 1px solid #66fcf1;
+}
+
+/* 警語設計 */
+.disclaimer {
+    font-size: 0.85rem;
+    opacity: 0.5;
+}
