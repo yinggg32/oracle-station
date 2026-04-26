@@ -1,6 +1,7 @@
 // 確保網頁的 HTML 都載入完成後，才開始執行 JavaScript
 document.addEventListener('DOMContentLoaded', () => {
 
+    // ================= 1. 全局變數綁定 =================
     const themeToggleBtn = document.getElementById('theme-toggle');
     const drawTarotBtn = document.getElementById('draw-tarot-btn');
     const drawLotBtn = document.getElementById('draw-lot-btn');
@@ -8,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalTitle = document.getElementById('modal-title');
     const modalBody = document.getElementById('modal-body');
 
-    // ================= 主題切換邏輯 =================
+    // ================= 2. 主題切換邏輯 =================
     if (localStorage.getItem('theme') === 'light') {
         document.body.classList.add('light-theme');
         themeToggleBtn.innerText = '切換神秘午夜 🌙';
@@ -25,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // ================= 塔羅牌資料庫 =================
+    // ================= 3. 塔羅牌資料庫 (完整 22 張) =================
     const tarotCards = [
         { name: "0. 愚者 (The Fool)", image: "https://upload.wikimedia.org/wikipedia/commons/9/90/RWS_Tarot_00_Fool.jpg", meaning: "【新開始】現在是冒險的好時機，放下恐懼，宇宙會接著你。" },
         { name: "1. 魔術師 (The Magician)", image: "https://upload.wikimedia.org/wikipedia/commons/d/de/RWS_Tarot_01_Magician.jpg", meaning: "【創造力】你擁有一切所需資源。集中精神，將想法化為現實。" },
@@ -51,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "21. 世界 (The World)", image: "https://upload.wikimedia.org/wikipedia/commons/f/ff/RWS_Tarot_21_World.jpg", meaning: "【圓滿】一個週期的完成。你已經抵達目的地，享受這份和諧吧。" }
     ];
 
-    // ================= 純抽牌邏輯 (左側按鈕) =================
+    // ================= 4. 純抽牌邏輯 (左側按鈕) =================
     drawTarotBtn.addEventListener('click', () => {
         modalTitle.innerText = "今日宇宙神諭";
         modalBody.innerHTML = `<div class="spinner-border text-info" role="status"></div>`;
@@ -73,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 300);
     });
 
-    // ================= AI 塔羅解牌邏輯 (右側按鈕 - 先抽牌再解讀) =================
+    // ================= 5. AI 塔羅解牌邏輯 (右側按鈕 - 先抽牌再解讀) =================
     const smartLots = {
         food: ["所以，吃吧！就當作是宇宙請客（雖然錢還是你付）。🍜", "看來這張牌強烈暗示你：你需要一杯微糖微冰的手搖飲來壓驚。🧋"],
         study: ["牌面都這樣說了，快去寫報告！Deadlines 可是不等人的。💻", "宇宙准許你休息一下，去圖書館睡個好覺吧。📚"],
@@ -88,15 +89,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const question = userQuestionInput.value.trim();
         const lowerQ = question.toLowerCase();
+
+        // 先抽牌！
+        const card = tarotCards[Math.floor(Math.random() * tarotCards.length)];
+
         let category = "default";
         let aiComment = "";
 
-        // 【12 星座彩蛋攔截系統】
+        // 12 星座彩蛋攔截系統
         const zodiacs = [
             { key: "牡羊", text: "你們牡羊座就是太衝動了，這張牌要你先冷靜三秒鐘！🐏" },
             { key: "白羊", text: "你們白羊座就是太衝動了，這張牌要你先冷靜三秒鐘！🐏" },
             { key: "金牛", text: "金牛座的你，比起這個問題，是不是更該去吃頓好料犒賞自己？🐂" },
-            { key: "雙子", text: "雙子座善變的靈魂啊，你確定這真的是你最後的決定嗎？👯" },
+            { key: "雙子", text: "雙子座善變的靈魂啊，這張牌的意思是，你確定這真的是你最後的決定嗎？👯" },
             { key: "巨蟹", text: "念舊又顧家的巨蟹座，這張牌提醒你偶爾也要為自己自私一回！🦀" },
             { key: "獅子", text: "自尊心超強的獅子座，這張牌暗示你：偶爾示弱一下世界也不會毀滅啦。🦁" },
             { key: "處女", text: "細節控的處女座，宇宙要你放過自己，80分就已經很完美了！♍" },
@@ -124,8 +129,8 @@ document.addEventListener('DOMContentLoaded', () => {
             aiComment = smartLots[category][Math.floor(Math.random() * smartLots[category].length)];
         }
 
-        // 抽取一張牌
-        const card = tarotCards[Math.floor(Math.random() * tarotCards.length)];
+        // 將「牌名」與「AI 吐槽」結合成最終的解牌文案
+        const finalAiResponse = `結合了<strong>【${card.name}】</strong>的能量，${aiComment}`;
 
         // 模擬延遲 0.8 秒
         setTimeout(() => {
@@ -147,11 +152,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h5 style="color: var(--accent-color);">${card.name}</h5>
                     <div class="text-start px-3 mt-3">
                         <p><strong>📜 牌面本意：</strong>${card.meaning}</p>
-                        <p class="mt-2 pt-2 border-top border-secondary"><strong>🤖 AI 補充解讀：</strong><br><span style="color: var(--glow-color);">${aiComment}</span></p>
+                        <p class="mt-2 pt-2 border-top border-secondary">
+                            <strong>🤖 AI 補充解讀：</strong><br>
+                            <span style="color: var(--glow-color); line-height: 1.6;">${finalAiResponse}</span>
+                        </p>
                     </div>
                 `;
                 setTimeout(() => { document.getElementById('tarot-inner-2').classList.add('is-flipped'); }, 100);
             }
         }, 800);
     });
-});
+});ㄔㄛ
