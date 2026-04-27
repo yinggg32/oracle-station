@@ -1,5 +1,5 @@
 :root {
-    /* 預設深色模式 (Midnight) */
+    /* 深色模式 */
     --bg-color: #0d1117;
     --text-color: #e6edf3;
     --card-bg: rgba(30, 41, 59, 0.7);
@@ -12,7 +12,7 @@
 }
 
 body.light-theme {
-    /* 明亮模式 (Dawn) */
+    /* 明亮模式 */
     --bg-color: #fcfaf2;
     --text-color: #3e3e3e;
     --card-bg: rgba(255, 255, 255, 0.8);
@@ -75,32 +75,64 @@ body {
     background-color: var(--input-bg);
     border: 1px solid var(--border-color);
     color: var(--text-color);
+    text-align: center;
 }
 
-/* 牌組設計 */
-.tarot-deck { display: flex; justify-content: center; padding: 30px 0; }
+/* --- 洗牌與發牌區 --- */
+.tarot-deck-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 30px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.tarot-deck-wrapper::-webkit-scrollbar { display: none; }
+
+.tarot-deck {
+    display: flex;
+    justify-content: center;
+    padding-top: 20px;
+    min-width: 300px;
+}
 
 .deck-card {
-    width: 70px; height: 120px;
+    width: 40px;
+    height: 75px;
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     border: 1px solid var(--accent-color);
-    border-radius: 8px; margin-left: -25px;
-    cursor: pointer; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: -5px 0 15px rgba(0,0,0,0.4);
+    border-radius: 6px;
+    margin-left: -25px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: -3px 0 10px rgba(0,0,0,0.4);
+    flex-shrink: 0;
 }
 
 .deck-card:first-child { margin-left: 0; }
 
-.deck-card::after { content: "🔮"; display: flex; justify-content: center; align-items: center; height: 100%; opacity: 0.6; font-size: 1.5rem; }
-
-.deck-card:hover {
-    transform: translateY(-30px) rotate(-8deg);
-    z-index: 100;
-    border-color: var(--glow-color);
-    box-shadow: 0 15px 30px var(--glow-color);
+.deck-card::after {
+    content: "🔮";
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    opacity: 0.6;
+    font-size: 1rem;
 }
 
-/* Modal 內容設定 */
+.deck-card:hover {
+    transform: translateY(-20px) rotate(-5deg);
+    z-index: 100;
+    border-color: var(--glow-color);
+    box-shadow: 0 10px 20px var(--glow-color);
+}
+
+.deck-card.dealing {
+    transform: translateX(-150px) translateY(-50px) rotate(-30deg);
+    opacity: 0;
+}
+
+/* --- Modal 與 3D 翻牌 --- */
 .mystical-modal {
     background-color: var(--modal-bg) !important;
     color: var(--text-color) !important;
@@ -109,11 +141,11 @@ body {
 
 .btn-close { filter: var(--btn-close-filter); }
 
-/* 3D 翻牌結構 */
-.card-container { perspective: 1000px; width: 180px; height: 300px; margin: 0 auto; }
+.card-container { perspective: 1000px; width: 160px; height: 270px; margin: 0 auto; }
 .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s; transform-style: preserve-3d; }
 .card-inner.is-flipped { transform: rotateY(180deg); }
 .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 15px; overflow: hidden; }
-.card-front { background: #1e293b; border: 2px solid var(--accent-color); display: flex; align-items: center; justify-content: center; font-size: 4rem; }
+.card-front { background: #1e293b; border: 2px solid var(--accent-color); display: flex; align-items: center; justify-content: center; font-size: 3rem; }
+.card-front::after { content: "🔮"; }
 .card-back { transform: rotateY(180deg); }
 .card-back img { width: 100%; height: 100%; object-fit: cover; }
