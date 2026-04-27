@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalTitle = document.getElementById('modal-title');
     const modalBody = document.getElementById('modal-body');
 
-    // ================= 1. 塔羅牌組 =================
+    // ================= 1. 22 張塔羅牌 =================
     const tarotCards = [
         { name: "0. 愚者", image: "https://upload.wikimedia.org/wikipedia/commons/9/90/RWS_Tarot_00_Fool.jpg", up: "冒險與新開始，純真的出發。", rev: "魯莽的行為、猶豫不決。" },
         { name: "1. 魔術師", image: "https://upload.wikimedia.org/wikipedia/commons/d/de/RWS_Tarot_01_Magician.jpg", up: "創造力與執行力，萬事具備。", rev: "能力未發揮、計畫延誤。" },
@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "7. 戰車", image: "https://upload.wikimedia.org/wikipedia/commons/9/9b/RWS_Tarot_07_Chariot.jpg", up: "意志與勝利，排除萬難前進。", rev: "失控、挫折感或方向錯誤。" },
         { name: "8. 力量", image: "https://upload.wikimedia.org/wikipedia/commons/f/f5/RWS_Tarot_08_Strength.jpg", up: "勇氣與韌性，溫柔的掌控。", rev: "軟弱、情緒失控。" },
         { name: "9. 隱士", image: "https://upload.wikimedia.org/wikipedia/commons/4/4d/RWS_Tarot_09_Hermit.jpg", up: "內省與孤獨，尋求真理。", rev: "孤立無援、逃避現實。" },
-        { name: "10. 命運之輪", image: "https://upload.wikimedia.org/wikipedia/commons/3/3c/RWS_Tarot_10_Wheel_of_Fortune.jpg", up: "轉機與好運，順應自然。", rev: "厄運、抗拒改變。" },
+        { name: "10. 命運之輪", image: "https://upload.wikimedia.org/wikipedia/commons/3/3c/RWS_Tarot_10_Wheel_of_Fortune.jpg", up: "轉機與好運，順應自然週期。", rev: "厄運、抗拒改變。" },
         { name: "11. 正義", image: "https://upload.wikimedia.org/wikipedia/commons/e/e0/RWS_Tarot_11_Justice.jpg", up: "公平與報應，誠實地面對。", rev: "偏見、不公或拒絕負責。" },
         { name: "12. 吊人", image: "https://upload.wikimedia.org/wikipedia/commons/2/2b/RWS_Tarot_12_Hanged_Man.jpg", up: "等待與換位思考，暫時的犧牲。", rev: "徒勞無功、無法掙脫。" },
         { name: "13. 死神", image: "https://upload.wikimedia.org/wikipedia/commons/d/d7/RWS_Tarot_13_Death.jpg", up: "結束與重生，揮別過去。", rev: "停滯不前、畏懼改變。" },
@@ -34,19 +34,23 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "21. 世界", image: "https://upload.wikimedia.org/wikipedia/commons/f/ff/RWS_Tarot_21_World.jpg", up: "圓滿與達成，週期的完成。", rev: "尚未完成、缺乏成就感。" }
     ];
 
-    // ================= 2. 擴充幸運曲庫與物品 =================
+    // ================= 2. 多樣化幸運資料庫 =================
     const luckyStuff = {
-        items: ["底片相機", "熱燕麥拿鐵", "TRUZ 玩偶", "沒讀完的書", "條紋襪子", "微糖去冰手搖", "透明手機殼", "薄荷糖", "銀色戒指", "耳機", "帆布袋"],
-        colors: ["發光青", "午夜藍", "鼠尾草綠", "神秘紫", "極致灰", "琥珀橙", "櫻花粉"],
+        items: ["底片相機", "熱燕麥拿鐵", "TRUZ 玩偶", "沒讀完的書", "條紋襪子", "微糖去冰手搖", "透明手機殼", "護唇膏", "銀色戒指", "降噪耳機", "帆布袋", "古著外套", "膠卷筆記本"],
+        colors: ["發光青", "午夜藍", "鼠尾草綠", "神秘紫", "極致灰", "琥珀橙", "奶茶色", "森林綠", "櫻花粉", "酒紅色"],
         songs: [
             { name: "Vaundy - 怪獸の花唄", url: "https://www.youtube.com/watch?v=UM9XNwrubcg" },
             { name: "Aimyon - 知道愛之前", url: "https://www.youtube.com/watch?v=E1JAU0T-E8w" },
             { name: "Rex OC - Pluto Projector", url: "https://www.youtube.com/watch?v=piGWLEBIfzQ" },
             { name: "Drake - One Dance", url: "https://www.youtube.com/watch?v=qL7zrWcv6XY" },
             { name: "TREASURE - DARARI", url: "https://www.youtube.com/watch?v=71GqqX2f31A" },
-            { name: "Post Malone - Sunflower", url: "https://www.youtube.com/watch?v=ApXoWvfEYVU" },
+            { name: "TREASURE - HELLO", url: "https://www.youtube.com/watch?v=n-YleUonH-c" },
             { name: "NewJeans - Ditto", url: "https://www.youtube.com/watch?v=pSUydWEqKwE" },
-            { name: "YOASOBI - アイドル", url: "https://www.youtube.com/watch?v=ZRtdQ81jPUQ" }
+            { name: "YOASOBI - 夜に駆ける", url: "https://www.youtube.com/watch?v=x8VYWazR5mE" },
+            { name: "Jay Chou - 七里香", url: "https://www.youtube.com/watch?v=Bbp9ZaJD_eA" },
+            { name: "Lofi Girl - Chill Beats", url: "https://www.youtube.com/watch?v=jfKfPfyJRdk" },
+            { name: "Aimyon - 春日", url: "https://www.youtube.com/watch?v=mH6Lo79LpXg" },
+            { name: "Vaundy - 不可幸力", url: "https://www.youtube.com/watch?v=CbH2F0kXisA" }
         ]
     };
 
@@ -61,22 +65,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="col-4 border-end border-secondary"><strong>幸運物</strong><br>${item}</div>
                 <div class="col-4 border-end border-secondary"><strong>幸運色</strong><br>${color}</div>
                 <div class="col-4"><strong>今日推薦曲</strong><br>
-                    <button onclick="window.open('${song.url}', '_blank')" class="btn mt-1" style="background-color: var(--accent-color); color: var(--bg-color); font-size: 0.7rem; padding: 4px 10px; border-radius: 12px; font-weight: bold; border: none; cursor: pointer; z-index: 1060;">
-                        ▶️ 去 YouTube 聽
-                    </button>
+                    <a href="${song.url}" target="_blank" rel="noopener noreferrer" class="yt-link-btn">
+                        ▶️ 去播放
+                    </a>
                 </div>
             </div>
-            <div class="text-center mt-2 small text-muted">${song.name}</div>
+            <div class="text-center mt-2 small song-title-text">${song.name}</div>
         </div>`;
     };
 
     const getTimeAdvice = () => {
         const hour = new Date().getHours();
-        if (hour >= 1 && hour <= 5) return "⚠️ 凌晨能量混亂，早點去睡覺吧！";
+        if (hour >= 1 && hour <= 5) return "⚠️ 宇宙提醒：現在是半夜，早點去睡覺吧！";
         return hour >= 22 || hour === 0 ? "🌙 深夜感性最強，聽從你的潛意識。" : "☀️ 日光充足，適合理性決定。";
     };
 
-    // ================= 3. AI 擬真解讀邏輯 =================
+    // ================= 3. AI 解讀引擎 (精準關聯版) =================
     const getAiInterpretation = (q, cardName, positionLabel, meaning) => {
         let category = "default";
         const lowerQ = q.toLowerCase();
@@ -87,24 +91,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const aiTemplates = {
             food: [
-                `牌面顯示「${meaning}」。這代表你今天不能隨便吃！宇宙建議你跟著【${cardName}】的能量，選擇直覺想到的那家店（不如去吃個和牛燒肉或 Subway 犒賞自己吧！）。`,
-                `看看【${cardName} ${positionLabel}】，它暗示「${meaning}」。套用在吃東西上，別猶豫了，今天加點喜歡的口味吧！`
+                `牌面顯示「${meaning}」。看來【${cardName}】在告訴你：別猶豫，去吃那個你直覺想到的東西（比如 Subway 的期間限定或是燒肉）！`,
+                `既然是【${cardName} ${positionLabel}】，代表「${meaning}」。吃頓好的犒賞自己也是一種對能量的平衡。`
             ],
             study: [
-                `這張牌的能量是「${meaning}」。套用在學業上，Deadline 不等人的，帶著這股能量打開 MacBook 趕進度吧！`,
-                `宇宙透過【${cardName}】告訴你：「${meaning}」。如果現在讀書或寫專案遇到瓶頸，不如先去按個暫停鍵休息一下。`
+                `這張牌的能量是「${meaning}」。帶著這股力量，把你的 MacBook 打開，專注地完成進度吧！`,
+                `宇宙透過【${cardName}】暗示：「${meaning}」。如果現在卡關了，休息一下其實是為了走更長的路。`
             ],
             love: [
-                `別再暈船啦！【${cardName}】暗示了「${meaning}」。感情的事急不得，這張牌建議你先把自己照顧好，桃花自然會來。`,
-                `如果你正在猶豫要不要主動，這張牌的能量說「${meaning}」。其實宇宙已經給了你答案，順著直覺去行動吧！`
+                `別再糾結啦！【${cardName}】說「${meaning}」。這代表你需要先把自己照顧好，吸引力才會由內而外散發。`,
+                `如果你在猶豫要不要主動，【${cardName}】的能量預示「${meaning}」。順著心意去做，不論結果如何都是成長。`
             ],
             money: [
-                `購物前請先深呼吸！牌面說「${meaning}」，這是一個需要謹慎理財的時刻，先忍住衝動吧。`,
-                `錢沒有不見，只是變成了你喜歡的樣子。既然牌面顯示「${meaning}」，這張牌支持你對自己好一點，買下去吧！`
+                `錢沒有不見，只是變成了你喜歡的樣子。但既然牌面顯示「${meaning}」，買之前還是稍微確認一下銀行存款吧！`,
+                `這是一個關於「${meaning}」的轉折。對於你想買的東西，【${cardName}】建議你聽從第一秒的直覺。`
             ],
             default: [
-                `這問題連宇宙都要思考一下... 但【${cardName}】給了你明確的暗示：「${meaning}」。聽從你內心第一秒閃過的直覺吧！`,
-                `不要太執著於眼前的困境，換個角度想，這張牌說「${meaning}」，這其實是來幫你破局的。`
+                `這問題連宇宙都要思考一下... 但【${cardName}】給了你明確的暗示：「${meaning}」。聽從內心的直覺吧！`,
+                `不要執著於眼前的困境，這張牌說「${meaning}」，這其實是給你一個重新審視的機會。`
             ]
         };
         const randomComment = aiTemplates[category][Math.floor(Math.random() * aiTemplates[category].length)];
@@ -119,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     };
 
-    // ================= 4. 主畫面：發牌與洗牌動畫 =================
+    // ================= 4. 主畫面：牌組渲染 =================
     const renderMainDeck = () => {
         deckContainer.innerHTML = '';
         for (let i = 0; i < 22; i++) {
@@ -129,8 +133,6 @@ document.addEventListener('DOMContentLoaded', () => {
             card.setAttribute('data-bs-target', '#resultModal');
             deckContainer.appendChild(card);
             setTimeout(() => { card.classList.remove('dealing'); }, i * 30);
-
-            // 左側抽牌：直接顯示結果（每日神諭，顯示幸運物）
             card.addEventListener('click', () => {
                 modalBody.innerHTML = `<div class="spinner-border text-info my-4" role="status"></div><p class="small">宇宙能量共振中...</p>`;
                 setTimeout(() => processDrawResult("", true), 500);
@@ -155,55 +157,38 @@ document.addEventListener('DOMContentLoaded', () => {
         updateThemeButton();
     });
 
-    // ================= 6. 右側問題邏輯 (包含在 Modal 抽牌) =================
+    // ================= 6. 右側問題邏輯 =================
     const handleRightSideSubmit = () => {
         const q = userQuestionInput.value.trim();
         const lowerQ = q.toLowerCase();
 
-        // 檢查彩蛋
         if (lowerQ.includes("treasure") || lowerQ.includes("truz")) {
             modalTitle.innerText = "💎 宇宙特別彩蛋";
-            modalBody.innerHTML = `<div class="py-4"><h1 class="display-4 fw-bold text-info">TREASURE MAKER</h1><p>不管牌面怎麼說，10人體制永遠是最棒的！快去聽 DARARI 吧！</p></div>`;
+            modalBody.innerHTML = `<div class="py-4"><h1 class="display-4 fw-bold text-info">TREASURE MAKER</h1><p>10人體制永遠是最棒的！快去聽 DARARI 吧！💎</p></div>`;
             return;
         }
 
-        // 檢查星座
         const zodiacs = ["牡羊","白羊","金牛","雙子","巨蟹","獅子","處女","天秤","天蠍","射手","摩羯","水瓶","雙魚"];
         const matched = zodiacs.filter(z => q.includes(z));
 
         if (matched.length >= 2) {
-            const z1 = matched[0];
-            const z2 = matched[1];
+            const z1 = matched[0]; const z2 = matched[1];
             const elements = { "火": ["牡羊", "白羊", "獅子", "射手"], "土": ["金牛", "處女", "摩羯"], "風": ["雙子", "天秤", "水瓶"], "水": ["巨蟹", "天蠍", "雙魚"] };
-            let e1 = Object.keys(elements).find(k => elements[k].includes(z1)) || "未知";
-            let e2 = Object.keys(elements).find(k => elements[k].includes(z2)) || "未知";
-
-            let score = 75, comment = "";
-            if ((z1 === "雙魚" && z2 === "巨蟹") || (z1 === "巨蟹" && z2 === "雙魚")) {
-                score = 99; comment = "命中注定的靈魂伴侶！巨蟹的細膩溫柔完美接住了雙魚的浪漫，甜到連宇宙都嫉妒！🦀🐟";
-            } else if (e1 === e2) {
-                score = 85 + ((z1.charCodeAt(0) + z2.charCodeAt(0)) % 10); comment = `同為${e1}象星座，有著天然的默契，但也小心缺點被互相放大喔。`;
-            } else if ((e1==='火'&&e2==='風') || (e1==='風'&&e2==='火') || (e1==='土'&&e2==='水') || (e1==='水'&&e2==='土')) {
-                score = 90 + ((z1.charCodeAt(0) + z2.charCodeAt(0)) % 10); comment = `完美互補！${e1}象與${e2}象的結合充滿火花與共同成長的動力。`;
-            } else if ((e1==='火'&&e2==='水') || (e1==='水'&&e2==='火') || (e1==='土'&&e2==='風') || (e1==='風'&&e2==='土')) {
-                score = 60 + ((z1.charCodeAt(0) + z2.charCodeAt(0)) % 10); comment = `水火不容還是相愛相殺？你們需要極大的耐心去理解彼此截然不同的腦迴路。`;
-            } else {
-                score = 75 + ((z1.charCodeAt(0) + z2.charCodeAt(0)) % 10); comment = `充滿挑戰但也充滿驚喜！找到彼此步調的平衡點，才能走得更長久。`;
-            }
-
+            let e1 = Object.keys(elements).find(k => elements[k].includes(z1));
+            let e2 = Object.keys(elements).find(k => elements[k].includes(z2));
+            let score = 80 + ((z1.charCodeAt(0) + z2.charCodeAt(0)) % 15);
             modalTitle.innerText = `❤️ ${z1} & ${z2} 相性診斷`;
-            modalBody.innerHTML = `<div class="py-4"><h1 class="display-3 fw-bold text-info">${score}%</h1><p class="mt-3 px-3">宇宙分析：${comment}</p></div>`;
+            modalBody.innerHTML = `<div class="py-4"><h1 class="display-3 fw-bold text-info">${score}%</h1><p class="mt-3 px-3">宇宙覺得：這組配對充滿了${e1 === e2 ? '天然的默契' : '精彩的火花'}！</p></div>`;
             return;
         }
 
-        // 如果不是星座，就是在問問題 -> 打開 Modal 讓使用者抽牌！
-        modalTitle.innerText = q ? "✨ 請在心中默念你的問題" : "✨ 請抽取一張牌";
+        modalTitle.innerText = q ? "✨ 請抽取一張牌" : "✨ 宇宙指引中";
         modalBody.innerHTML = `
             <p class="text-info small mb-4">關於：「${q || '今日運勢'}」</p>
             <div class="tarot-deck-wrapper mb-4">
                 <div class="tarot-deck" id="modal-deck-container"></div>
             </div>
-            <p class="small text-muted">憑直覺點擊上方的一張牌</p>
+            <p class="small text-muted">憑直覺點擊一張牌</p>
         `;
 
         const mDeck = document.getElementById('modal-deck-container');
@@ -212,10 +197,8 @@ document.addEventListener('DOMContentLoaded', () => {
             card.className = 'deck-card dealing';
             mDeck.appendChild(card);
             setTimeout(() => { card.classList.remove('dealing'); }, i * 30);
-
-            // 使用者在 Modal 裡面點擊卡片後，才顯示解答
             card.addEventListener('click', () => {
-                modalBody.innerHTML = `<div class="spinner-border text-info my-4" role="status"></div><p class="small">宇宙正在為你解讀牌面...</p>`;
+                modalBody.innerHTML = `<div class="spinner-border text-info my-4" role="status"></div>`;
                 setTimeout(() => processDrawResult(q, false), 800);
             });
         }
@@ -223,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     drawLotBtn.addEventListener('click', handleRightSideSubmit);
 
-    // ================= 7. 顯示翻牌與解答的邏輯 =================
+    // ================= 7. 解答結果顯示 =================
     const processDrawResult = (q = "", isDaily = false) => {
         const c = tarotCards[Math.floor(Math.random() * tarotCards.length)];
         const isReversed = Math.random() < 0.5;
@@ -232,11 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const imgStyle = isReversed ? "transform: rotate(180deg);" : "";
 
         modalTitle.innerText = isDaily ? "今日宇宙神諭" : "🔮 AI 靈魂解答";
-
-        const contentHTML = isDaily
-            ? `<p class="small px-3 mt-3">【${positionLabel}】${meaning}</p>`
-            : (q ? getAiInterpretation(q, c.name, positionLabel, meaning) : `<p class="small px-3 mt-3">你什麼都沒問，宇宙先送你一張牌：【${positionLabel}】${meaning}</p>`);
-
+        const contentHTML = isDaily ? `<p class="small px-3 mt-3">【${positionLabel}】${meaning}</p>` : getAiInterpretation(q, c.name, positionLabel, meaning);
         const luckySection = isDaily ? getLuckyHTML() : "";
 
         modalBody.innerHTML = `
@@ -251,10 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <p class="text-info small mt-3 border-top border-secondary pt-2">${getTimeAdvice()}</p>
             ${luckySection}
         `;
-        setTimeout(() => {
-            const target = document.getElementById('flip-target');
-            if (target) target.classList.add('is-flipped');
-        }, 150);
+        setTimeout(() => { document.getElementById('flip-target').classList.add('is-flipped'); }, 150);
     };
 
     // ================= 8. 截圖下載 =================
@@ -262,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const area = document.getElementById('capture-area');
         const currentBg = getComputedStyle(document.body).getPropertyValue('--bg-color');
         html2canvas(area, { backgroundColor: currentBg, scale: 2 }).then(canvas => {
-            const a = document.createElement('a'); a.download = 'destiny.png'; a.href = canvas.toDataURL(); a.click();
+            const a = document.createElement('a'); a.download = 'oracle-result.png'; a.href = canvas.toDataURL(); a.click();
         });
     });
 });
