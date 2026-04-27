@@ -61,9 +61,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="col-4 border-end border-secondary"><strong>幸運物</strong><br>${item}</div>
                 <div class="col-4 border-end border-secondary"><strong>幸運色</strong><br>${color}</div>
                 <div class="col-4"><strong>今日推薦曲</strong><br>
-                    <a href="${song.url}" target="_blank" rel="noopener noreferrer" class="btn mt-1" style="background-color: var(--accent-color); color: var(--bg-color); font-size: 0.7rem; padding: 4px 10px; border-radius: 12px; font-weight: bold; text-decoration: none; display: inline-block;">
+                    <button onclick="window.open('${song.url}', '_blank')" class="btn mt-1" style="background-color: var(--accent-color); color: var(--bg-color); font-size: 0.7rem; padding: 4px 10px; border-radius: 12px; font-weight: bold; border: none; box-shadow: 0 2px 5px rgba(0,0,0,0.2); cursor: pointer; position: relative; z-index: 1060;">
                         ▶️ 去 YouTube 聽
-                    </a>
+                    </button>
                 </div>
             </div>
             <div class="text-center mt-2 small text-muted">${song.name}</div>
@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return hour >= 22 || hour === 0 ? "🌙 深夜感性最強，聽從你的潛意識。" : "☀️ 日光充足，適合理性決定。";
     };
 
-    // ================= 3. AI 擬真解讀邏輯 (動態結合牌意) =================
+    // ================= 3. AI 擬真解讀邏輯 =================
     const getAiInterpretation = (q, cardName, positionLabel, meaning) => {
         let category = "default";
         const lowerQ = q.toLowerCase();
@@ -85,15 +85,14 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (lowerQ.includes("買") || lowerQ.includes("錢") || lowerQ.includes("花") || lowerQ.includes("貴")) category = "money";
         else if (lowerQ.includes("告白") || lowerQ.includes("喜歡") || lowerQ.includes("暈船") || lowerQ.includes("男") || lowerQ.includes("女")) category = "love";
 
-        // 準備多種回答模板，將抽到的「牌名」與「牌意」直接寫入句子裡
         const aiTemplates = {
             food: [
-                `牌面顯示「${meaning}」。這代表你今天不能隨便吃！宇宙建議你跟著【${cardName}】的能量，選擇直覺想到的那家店（不如去吃個和牛燒肉或海底撈犒賞自己吧！）。`,
-                `看看【${cardName} ${positionLabel}】，它暗示「${meaning}」。套用在吃東西上，別猶豫了，哪怕是去高師大旁邊買個 Subway，也要加點喜歡的口味！`
+                `牌面顯示「${meaning}」。這代表你今天不能隨便吃！宇宙建議你跟著【${cardName}】的能量，選擇直覺想到的那家店（不如去吃個和牛燒肉或 Subway 犒賞自己吧！）。`,
+                `看看【${cardName} ${positionLabel}】，它暗示「${meaning}」。套用在吃東西上，別猶豫了，今天加點喜歡的口味吧！`
             ],
             study: [
-                `這張牌的能量是「${meaning}」。套用在學業上，Deadline 不等人的，帶著這股能量打開你的 MacBook 趕進度吧！`,
-                `宇宙透過【${cardName}】告訴你：「${meaning}」。如果現在寫程式或讀書遇到瓶頸，不如先去按個暫停鍵休息一下。`
+                `這張牌的能量是「${meaning}」。套用在學業上，Deadline 不等人的，帶著這股能量打開 MacBook 趕進度吧！`,
+                `宇宙透過【${cardName}】告訴你：「${meaning}」。如果現在讀書或寫專案遇到瓶頸，不如先去按個暫停鍵休息一下。`
             ],
             love: [
                 `別再暈船啦！【${cardName}】暗示了「${meaning}」。感情的事急不得，這張牌建議你先把自己照顧好，桃花自然會來。`,
@@ -153,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateThemeButton();
     });
 
-    // ================= 6. 核心抽牌邏輯 =================
+    // ================= 6. 核心抽牌與星象邏輯 =================
     const processDraw = (q = "", isDaily = false) => {
         const c = tarotCards[Math.floor(Math.random() * tarotCards.length)];
         const isReversed = Math.random() < 0.5;
@@ -161,7 +160,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const meaning = isReversed ? c.rev : c.up;
         const imgStyle = isReversed ? "transform: rotate(180deg);" : "";
 
-        // 星座配對彩蛋
         const zodiacs = ["牡羊","白羊","金牛","雙子","巨蟹","獅子","處女","天秤","天蠍","射手","摩羯","水瓶","雙魚"];
         const matched = zodiacs.filter(z => q.includes(z));
 
@@ -172,19 +170,50 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // 星象配對邏輯
         if (matched.length >= 2) {
-            const score = Math.floor(Math.random() * 41) + 60;
-            modalTitle.innerText = `❤️ ${matched[0]} & ${matched[1]} 相性診斷`;
-            modalBody.innerHTML = `<div class="py-4"><h1 class="display-3 fw-bold text-info">${score}%</h1><p>宇宙覺得：${score > 85 ? '你們是天生一對！' : '多溝通包容吧。'}</p></div>`;
+            const z1 = matched[0];
+            const z2 = matched[1];
+
+            const elements = {
+                "火": ["牡羊", "白羊", "獅子", "射手"],
+                "土": ["金牛", "處女", "摩羯"],
+                "風": ["雙子", "天秤", "水瓶"],
+                "水": ["巨蟹", "天蠍", "雙魚"]
+            };
+
+            let e1 = Object.keys(elements).find(k => elements[k].includes(z1)) || "未知";
+            let e2 = Object.keys(elements).find(k => elements[k].includes(z2)) || "未知";
+
+            let score = 75;
+            let comment = "";
+
+            if ((z1 === "雙魚" && z2 === "巨蟹") || (z1 === "巨蟹" && z2 === "雙魚")) {
+                score = 99;
+                comment = "命中注定的靈魂伴侶！巨蟹的細膩溫柔完美接住了雙魚的浪漫，這對組合甜到連宇宙都嫉妒啦！🦀🐟";
+            } else if (e1 === e2) {
+                score = 85 + ((z1.charCodeAt(0) + z2.charCodeAt(0)) % 10);
+                comment = `同為${e1}象星座，你們有著天然的默契，像照鏡子一樣懂對方！但也小心缺點被互相放大喔。`;
+            } else if ((e1==='火'&&e2==='風') || (e1==='風'&&e2==='火') || (e1==='土'&&e2==='水') || (e1==='水'&&e2==='土')) {
+                score = 90 + ((z1.charCodeAt(0) + z2.charCodeAt(0)) % 10);
+                comment = `完美互補！${e1}象與${e2}象的結合，讓你們的相處充滿火花與共同成長的動力。`;
+            } else if ((e1==='火'&&e2==='水') || (e1==='水'&&e2==='火') || (e1==='土'&&e2==='風') || (e1==='風'&&e2==='土')) {
+                score = 60 + ((z1.charCodeAt(0) + z2.charCodeAt(0)) % 10);
+                comment = `水火不容還是相愛相殺？${e1}象與${e2}象需要極大的耐心去理解彼此截然不同的腦迴路。`;
+            } else {
+                score = 75 + ((z1.charCodeAt(0) + z2.charCodeAt(0)) % 10);
+                comment = `充滿挑戰但也充滿驚喜！你們需要找到彼此步調的平衡點，才能走得更長久。`;
+            }
+
+            modalTitle.innerText = `❤️ ${z1} & ${z2} 相性診斷`;
+            modalBody.innerHTML = `<div class="py-4"><h1 class="display-3 fw-bold text-info">${score}%</h1><p class="mt-3 px-3" style="line-height: 1.6;">宇宙分析：${comment}</p></div>`;
         } else {
             modalTitle.innerText = isDaily ? "今日宇宙神諭" : "🔮 AI 靈魂解答";
 
-            // 決定內容：每日神諭顯示純牌意，有問問題則呼叫 AI 解讀引擎
             const contentHTML = isDaily
                 ? `<p class="small px-3 mt-3">【${positionLabel}】${meaning}</p>`
                 : (q ? getAiInterpretation(q, c.name, positionLabel, meaning) : `<p class="small px-3 mt-3">你什麼都沒問，宇宙先送你一張牌：【${positionLabel}】${meaning}</p>`);
 
-            // 只有左邊每日神諭才會顯示幸運物與歌曲
             const luckySection = isDaily ? getLuckyHTML() : "";
 
             modalBody.innerHTML = `
