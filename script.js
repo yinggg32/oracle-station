@@ -36,20 +36,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ================= 2. 擴充幸運曲庫與物品 =================
     const luckyStuff = {
-        items: ["熱燕麥拿鐵", "底片相機", "TRUZ 玩偶", "沒讀完的書", "條紋襪子", "微糖去冰手搖", "透明手機殼", "薄荷糖", "銀色戒指", "耳機", "帆布袋", "環保杯", "墨鏡"],
+        items: ["底片相機", "熱燕麥拿鐵", "TRUZ 玩偶", "沒讀完的書", "條紋襪子", "微糖去冰手搖", "透明手機殼", "薄荷糖", "銀色戒指", "耳機", "帆布袋", "環保杯", "墨鏡"],
         colors: ["發光青", "午夜藍", "鼠尾草綠", "神秘紫", "極致灰", "琥珀橙", "櫻花粉", "奶茶色", "森林綠", "酒紅色"],
         songs: [
-            { name: "Vaundy - 怪獸の花唄", url: "https://youtu.be/UM9XNwrubcg" },
-            { name: "Aimyon - 知道愛之前", url: "https://youtu.be/E1JAU0T-E8w" },
-            { name: "Rex OC - Pluto Projector", url: "https://youtu.be/piGWLEBIfzQ" },
-            { name: "Drake - One Dance", url: "https://youtu.be/qL7zrWcv6XY" },
-            { name: "TREASURE - DARARI", url: "https://youtu.be/71GqqX2f31A" },
-            { name: "Post Malone - Sunflower", url: "https://youtu.be/ApXoWvfEYVU" },
-            { name: "NewJeans - Ditto", url: "https://youtu.be/pSUydWEqKwE" },
-            { name: "YOASOBI - アイドル", url: "https://youtu.be/ZRtdQ81jPUQ" },
-            { name: "Taylor Swift - Cruel Summer", url: "https://youtu.be/ic8j13piAhQ" },
-            { name: "周杰倫 - 七里香", url: "https://youtu.be/Bbp9ZaJD_eA" },
-            { name: "Lofi Girl - Chill Beats", url: "https://youtu.be/jfKfPfyJRdk" }
+            { name: "Vaundy - 怪獸の花唄", url: "https://www.youtube.com/watch?v=UM9XNwrubcg" },
+            { name: "Aimyon - 知道愛之前", url: "https://www.youtube.com/watch?v=E1JAU0T-E8w" },
+            { name: "Rex OC - Pluto Projector", url: "https://www.youtube.com/watch?v=piGWLEBIfzQ" },
+            { name: "Drake - One Dance", url: "https://www.youtube.com/watch?v=qL7zrWcv6XY" },
+            { name: "TREASURE - DARARI", url: "https://www.youtube.com/watch?v=71GqqX2f31A" },
+            { name: "Post Malone - Sunflower", url: "https://www.youtube.com/watch?v=ApXoWvfEYVU" },
+            { name: "NewJeans - Ditto", url: "https://www.youtube.com/watch?v=pSUydWEqKwE" },
+            { name: "YOASOBI - アイドル", url: "https://www.youtube.com/watch?v=ZRtdQ81jPUQ" }
         ]
     };
 
@@ -64,8 +61,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="col-4 border-end border-secondary"><strong>幸運物</strong><br>${item}</div>
                 <div class="col-4 border-end border-secondary"><strong>幸運色</strong><br>${color}</div>
                 <div class="col-4"><strong>今日推薦曲</strong><br>
-                    <a href="${song.url}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-info mt-1" style="font-size: 0.7rem; padding: 2px 8px;">
-                        ▶️ 點我聽歌
+                    <a href="${song.url}" target="_blank" rel="noopener noreferrer" class="btn mt-1" style="background-color: var(--accent-color); color: var(--bg-color); font-size: 0.7rem; padding: 4px 10px; border-radius: 12px; font-weight: bold; text-decoration: none; display: inline-block;">
+                        ▶️ 去 YouTube 聽
                     </a>
                 </div>
             </div>
@@ -79,30 +76,47 @@ document.addEventListener('DOMContentLoaded', () => {
         return hour >= 22 || hour === 0 ? "🌙 深夜感性最強，聽從你的潛意識。" : "☀️ 日光充足，適合理性決定。";
     };
 
-    // ================= 3. AI 擬真解讀邏輯 (有在認真分析版) =================
-    const getAiInterpretation = (q, cardMeaning) => {
+    // ================= 3. AI 擬真解讀邏輯 (動態結合牌意) =================
+    const getAiInterpretation = (q, cardName, positionLabel, meaning) => {
         let category = "default";
-        if (q.includes("吃") || q.includes("餓") || q.includes("餐")) category = "food";
-        else if (q.includes("課") || q.includes("作業") || q.includes("報告") || q.includes("期中")) category = "study";
-        else if (q.includes("買") || q.includes("錢") || q.includes("花") || q.includes("貴")) category = "money";
-        else if (q.includes("告白") || q.includes("喜歡") || q.includes("暈船") || q.includes("約")) category = "love";
+        const lowerQ = q.toLowerCase();
+        if (lowerQ.includes("吃") || lowerQ.includes("餓") || lowerQ.includes("餐")) category = "food";
+        else if (lowerQ.includes("課") || lowerQ.includes("作業") || lowerQ.includes("報告") || lowerQ.includes("期中") || lowerQ.includes("code")) category = "study";
+        else if (lowerQ.includes("買") || lowerQ.includes("錢") || lowerQ.includes("花") || lowerQ.includes("貴")) category = "money";
+        else if (lowerQ.includes("告白") || lowerQ.includes("喜歡") || lowerQ.includes("暈船") || lowerQ.includes("男") || lowerQ.includes("女")) category = "love";
 
+        // 準備多種回答模板，將抽到的「牌名」與「牌意」直接寫入句子裡
         const aiTemplates = {
-            food: ["宇宙覺得你現在的血糖可能有點低！", "吃點好的犒賞自己吧，畢竟減肥永遠是明天的事。", "這張牌暗示你，今天如果選錯餐廳，可能會影響一整天的心情喔！"],
-            study: ["牌面的能量在告訴你：Deadline 是第一生產力，快去動工！", "如果現在覺得很累，宇宙准許你先去睡個午覺再來面對。", "學習的路上雖然孤獨，但這張牌顯示你的努力會有回報的。"],
-            love: ["別再暈船啦！清醒一點，看看這張牌給你的暗示。", "感情的事情急不得，這張牌建議你先把自己照顧好，桃花自然會來。", "如果你正在猶豫要不要主動，這張牌的能量其實已經給了你答案。"],
-            money: ["買東西前請先深呼吸，看看你的銀行帳戶餘額！", "錢沒有不見，只是變成了你喜歡的樣子。這張牌支持你對自己好一點。", "這是一個需要謹慎理財的時刻，先忍住衝動購物的慾望吧。"],
-            default: ["這問題連宇宙都要思考一下... 但牌面給了你很明確的暗示！", "不要太執著於眼前的困境，換個角度想，這張牌其實是來幫你的。", "聽從你內心第一秒閃過的直覺，那就是這張牌要給你的答案。"]
+            food: [
+                `牌面顯示「${meaning}」。這代表你今天不能隨便吃！宇宙建議你跟著【${cardName}】的能量，選擇直覺想到的那家店（不如去吃個和牛燒肉或海底撈犒賞自己吧！）。`,
+                `看看【${cardName} ${positionLabel}】，它暗示「${meaning}」。套用在吃東西上，別猶豫了，哪怕是去高師大旁邊買個 Subway，也要加點喜歡的口味！`
+            ],
+            study: [
+                `這張牌的能量是「${meaning}」。套用在學業上，Deadline 不等人的，帶著這股能量打開你的 MacBook 趕進度吧！`,
+                `宇宙透過【${cardName}】告訴你：「${meaning}」。如果現在寫程式或讀書遇到瓶頸，不如先去按個暫停鍵休息一下。`
+            ],
+            love: [
+                `別再暈船啦！【${cardName}】暗示了「${meaning}」。感情的事急不得，這張牌建議你先把自己照顧好，桃花自然會來。`,
+                `如果你正在猶豫要不要主動，這張牌的能量說「${meaning}」。其實宇宙已經給了你答案，順著直覺去行動吧！`
+            ],
+            money: [
+                `購物前請先深呼吸！牌面說「${meaning}」，這是一個需要謹慎理財的時刻，先忍住衝動吧。`,
+                `錢沒有不見，只是變成了你喜歡的樣子。既然牌面顯示「${meaning}」，這張牌支持你對自己好一點，買下去吧！`
+            ],
+            default: [
+                `這問題連宇宙都要思考一下... 但【${cardName}】給了你明確的暗示：「${meaning}」。聽從你內心第一秒閃過的直覺吧！`,
+                `不要太執著於眼前的困境，換個角度想，這張牌說「${meaning}」，這其實是來幫你破局的。`
+            ]
         };
 
         const randomComment = aiTemplates[category][Math.floor(Math.random() * aiTemplates[category].length)];
 
         return `
             <div class="text-start mt-3 px-2">
-                <p class="mb-2"><strong>🔮 牌面本意：</strong>${cardMeaning}</p>
-                <div class="p-3 rounded" style="background: rgba(88, 166, 255, 0.1); border-left: 4px solid var(--accent-color);">
+                <p class="mb-2"><strong>🔮 牌面本意：</strong>${meaning}</p>
+                <div class="p-3 rounded mt-2 shadow-sm" style="background: rgba(88, 166, 255, 0.1); border-left: 4px solid var(--accent-color);">
                     <strong>🤖 AI 綜合解讀：</strong><br>
-                    <span style="font-size: 0.95rem; line-height: 1.6;">${randomComment} 也就是說，對於你問的問題，宇宙的建議是順著這張牌的能量去行動！</span>
+                    <span style="font-size: 0.95rem; line-height: 1.6;">${randomComment}</span>
                 </div>
             </div>
         `;
@@ -147,8 +161,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const meaning = isReversed ? c.rev : c.up;
         const imgStyle = isReversed ? "transform: rotate(180deg);" : "";
 
+        // 星座配對彩蛋
         const zodiacs = ["牡羊","白羊","金牛","雙子","巨蟹","獅子","處女","天秤","天蠍","射手","摩羯","水瓶","雙魚"];
         const matched = zodiacs.filter(z => q.includes(z));
+
+        // TREASURE 彩蛋
+        if (q.toLowerCase().includes("treasure") || q.toLowerCase().includes("truz")) {
+            modalTitle.innerText = "💎 宇宙特別彩蛋";
+            modalBody.innerHTML = `<div class="py-4"><h1 class="display-4 fw-bold text-info">TREASURE MAKER</h1><p>不管牌面怎麼說，10人體制永遠是最棒的！快去聽 DARARI 吧！</p></div>`;
+            return;
+        }
 
         if (matched.length >= 2) {
             const score = Math.floor(Math.random() * 41) + 60;
@@ -157,12 +179,12 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             modalTitle.innerText = isDaily ? "今日宇宙神諭" : "🔮 AI 靈魂解答";
 
-            // 決定文字內容：每日神諭只顯示牌意，右邊按鈕則顯示 AI 分析
+            // 決定內容：每日神諭顯示純牌意，有問問題則呼叫 AI 解讀引擎
             const contentHTML = isDaily
                 ? `<p class="small px-3 mt-3">【${positionLabel}】${meaning}</p>`
-                : (q ? getAiInterpretation(q, meaning) : `<p class="small px-3 mt-3">你什麼都沒問，宇宙先送你一張牌：【${positionLabel}】${meaning}</p>`);
+                : (q ? getAiInterpretation(q, c.name, positionLabel, meaning) : `<p class="small px-3 mt-3">你什麼都沒問，宇宙先送你一張牌：【${positionLabel}】${meaning}</p>`);
 
-            // 只有左邊每日神諭才會顯示幸運物
+            // 只有左邊每日神諭才會顯示幸運物與歌曲
             const luckySection = isDaily ? getLuckyHTML() : "";
 
             modalBody.innerHTML = `
