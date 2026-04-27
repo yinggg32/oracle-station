@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalTitle = document.getElementById('modal-title');
     const modalBody = document.getElementById('modal-body');
 
-    // ================= 1. 完整 22 張塔羅牌組 =================
+    // ================= 1. 塔羅牌組 =================
     const tarotCards = [
         { name: "0. 愚者", image: "https://upload.wikimedia.org/wikipedia/commons/9/90/RWS_Tarot_00_Fool.jpg", up: "冒險與新開始，純真的出發。", rev: "魯莽的行為、猶豫不決。" },
         { name: "1. 魔術師", image: "https://upload.wikimedia.org/wikipedia/commons/d/de/RWS_Tarot_01_Magician.jpg", up: "創造力與執行力，萬事具備。", rev: "能力未發揮、計畫延誤。" },
@@ -36,8 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ================= 2. 擴充幸運曲庫與物品 =================
     const luckyStuff = {
-        items: ["底片相機", "熱燕麥拿鐵", "TRUZ 玩偶", "沒讀完的書", "條紋襪子", "微糖去冰手搖", "透明手機殼", "薄荷糖", "銀色戒指", "耳機", "帆布袋", "環保杯", "墨鏡"],
-        colors: ["發光青", "午夜藍", "鼠尾草綠", "神秘紫", "極致灰", "琥珀橙", "櫻花粉", "奶茶色", "森林綠", "酒紅色"],
+        items: ["底片相機", "熱燕麥拿鐵", "TRUZ 玩偶", "沒讀完的書", "條紋襪子", "微糖去冰手搖", "透明手機殼", "薄荷糖", "銀色戒指", "耳機", "帆布袋"],
+        colors: ["發光青", "午夜藍", "鼠尾草綠", "神秘紫", "極致灰", "琥珀橙", "櫻花粉"],
         songs: [
             { name: "Vaundy - 怪獸の花唄", url: "https://www.youtube.com/watch?v=UM9XNwrubcg" },
             { name: "Aimyon - 知道愛之前", url: "https://www.youtube.com/watch?v=E1JAU0T-E8w" },
@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="col-4 border-end border-secondary"><strong>幸運物</strong><br>${item}</div>
                 <div class="col-4 border-end border-secondary"><strong>幸運色</strong><br>${color}</div>
                 <div class="col-4"><strong>今日推薦曲</strong><br>
-                    <button onclick="window.open('${song.url}', '_blank')" class="btn mt-1" style="background-color: var(--accent-color); color: var(--bg-color); font-size: 0.7rem; padding: 4px 10px; border-radius: 12px; font-weight: bold; border: none; box-shadow: 0 2px 5px rgba(0,0,0,0.2); cursor: pointer; position: relative; z-index: 1060;">
+                    <button onclick="window.open('${song.url}', '_blank')" class="btn mt-1" style="background-color: var(--accent-color); color: var(--bg-color); font-size: 0.7rem; padding: 4px 10px; border-radius: 12px; font-weight: bold; border: none; cursor: pointer; z-index: 1060;">
                         ▶️ 去 YouTube 聽
                     </button>
                 </div>
@@ -107,9 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 `不要太執著於眼前的困境，換個角度想，這張牌說「${meaning}」，這其實是來幫你破局的。`
             ]
         };
-
         const randomComment = aiTemplates[category][Math.floor(Math.random() * aiTemplates[category].length)];
-
         return `
             <div class="text-start mt-3 px-2">
                 <p class="mb-2"><strong>🔮 牌面本意：</strong>${meaning}</p>
@@ -121,8 +119,8 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     };
 
-    // ================= 4. 發牌與洗牌動畫 =================
-    const renderDeck = () => {
+    // ================= 4. 主畫面：發牌與洗牌動畫 =================
+    const renderMainDeck = () => {
         deckContainer.innerHTML = '';
         for (let i = 0; i < 22; i++) {
             const card = document.createElement('div');
@@ -130,13 +128,18 @@ document.addEventListener('DOMContentLoaded', () => {
             card.setAttribute('data-bs-toggle', 'modal');
             card.setAttribute('data-bs-target', '#resultModal');
             deckContainer.appendChild(card);
-            setTimeout(() => { card.classList.remove('dealing'); }, i * 40);
-            card.addEventListener('click', () => processDraw("", true));
+            setTimeout(() => { card.classList.remove('dealing'); }, i * 30);
+
+            // 左側抽牌：直接顯示結果（每日神諭，顯示幸運物）
+            card.addEventListener('click', () => {
+                modalBody.innerHTML = `<div class="spinner-border text-info my-4" role="status"></div><p class="small">宇宙能量共振中...</p>`;
+                setTimeout(() => processDrawResult("", true), 500);
+            });
         }
     };
 
-    shuffleBtn.addEventListener('click', renderDeck);
-    renderDeck();
+    shuffleBtn.addEventListener('click', renderMainDeck);
+    renderMainDeck();
 
     // ================= 5. 主題切換 =================
     const updateThemeButton = () => {
@@ -152,92 +155,109 @@ document.addEventListener('DOMContentLoaded', () => {
         updateThemeButton();
     });
 
-    // ================= 6. 核心抽牌與星象邏輯 =================
-    const processDraw = (q = "", isDaily = false) => {
+    // ================= 6. 右側問題邏輯 (包含在 Modal 抽牌) =================
+    const handleRightSideSubmit = () => {
+        const q = userQuestionInput.value.trim();
+        const lowerQ = q.toLowerCase();
+
+        // 檢查彩蛋
+        if (lowerQ.includes("treasure") || lowerQ.includes("truz")) {
+            modalTitle.innerText = "💎 宇宙特別彩蛋";
+            modalBody.innerHTML = `<div class="py-4"><h1 class="display-4 fw-bold text-info">TREASURE MAKER</h1><p>不管牌面怎麼說，10人體制永遠是最棒的！快去聽 DARARI 吧！</p></div>`;
+            return;
+        }
+
+        // 檢查星座
+        const zodiacs = ["牡羊","白羊","金牛","雙子","巨蟹","獅子","處女","天秤","天蠍","射手","摩羯","水瓶","雙魚"];
+        const matched = zodiacs.filter(z => q.includes(z));
+
+        if (matched.length >= 2) {
+            const z1 = matched[0];
+            const z2 = matched[1];
+            const elements = { "火": ["牡羊", "白羊", "獅子", "射手"], "土": ["金牛", "處女", "摩羯"], "風": ["雙子", "天秤", "水瓶"], "水": ["巨蟹", "天蠍", "雙魚"] };
+            let e1 = Object.keys(elements).find(k => elements[k].includes(z1)) || "未知";
+            let e2 = Object.keys(elements).find(k => elements[k].includes(z2)) || "未知";
+
+            let score = 75, comment = "";
+            if ((z1 === "雙魚" && z2 === "巨蟹") || (z1 === "巨蟹" && z2 === "雙魚")) {
+                score = 99; comment = "命中注定的靈魂伴侶！巨蟹的細膩溫柔完美接住了雙魚的浪漫，甜到連宇宙都嫉妒！🦀🐟";
+            } else if (e1 === e2) {
+                score = 85 + ((z1.charCodeAt(0) + z2.charCodeAt(0)) % 10); comment = `同為${e1}象星座，有著天然的默契，但也小心缺點被互相放大喔。`;
+            } else if ((e1==='火'&&e2==='風') || (e1==='風'&&e2==='火') || (e1==='土'&&e2==='水') || (e1==='水'&&e2==='土')) {
+                score = 90 + ((z1.charCodeAt(0) + z2.charCodeAt(0)) % 10); comment = `完美互補！${e1}象與${e2}象的結合充滿火花與共同成長的動力。`;
+            } else if ((e1==='火'&&e2==='水') || (e1==='水'&&e2==='火') || (e1==='土'&&e2==='風') || (e1==='風'&&e2==='土')) {
+                score = 60 + ((z1.charCodeAt(0) + z2.charCodeAt(0)) % 10); comment = `水火不容還是相愛相殺？你們需要極大的耐心去理解彼此截然不同的腦迴路。`;
+            } else {
+                score = 75 + ((z1.charCodeAt(0) + z2.charCodeAt(0)) % 10); comment = `充滿挑戰但也充滿驚喜！找到彼此步調的平衡點，才能走得更長久。`;
+            }
+
+            modalTitle.innerText = `❤️ ${z1} & ${z2} 相性診斷`;
+            modalBody.innerHTML = `<div class="py-4"><h1 class="display-3 fw-bold text-info">${score}%</h1><p class="mt-3 px-3">宇宙分析：${comment}</p></div>`;
+            return;
+        }
+
+        // 如果不是星座，就是在問問題 -> 打開 Modal 讓使用者抽牌！
+        modalTitle.innerText = q ? "✨ 請在心中默念你的問題" : "✨ 請抽取一張牌";
+        modalBody.innerHTML = `
+            <p class="text-info small mb-4">關於：「${q || '今日運勢'}」</p>
+            <div class="tarot-deck-wrapper mb-4">
+                <div class="tarot-deck" id="modal-deck-container"></div>
+            </div>
+            <p class="small text-muted">憑直覺點擊上方的一張牌</p>
+        `;
+
+        const mDeck = document.getElementById('modal-deck-container');
+        for (let i = 0; i < 22; i++) {
+            const card = document.createElement('div');
+            card.className = 'deck-card dealing';
+            mDeck.appendChild(card);
+            setTimeout(() => { card.classList.remove('dealing'); }, i * 30);
+
+            // 使用者在 Modal 裡面點擊卡片後，才顯示解答
+            card.addEventListener('click', () => {
+                modalBody.innerHTML = `<div class="spinner-border text-info my-4" role="status"></div><p class="small">宇宙正在為你解讀牌面...</p>`;
+                setTimeout(() => processDrawResult(q, false), 800);
+            });
+        }
+    };
+
+    drawLotBtn.addEventListener('click', handleRightSideSubmit);
+
+    // ================= 7. 顯示翻牌與解答的邏輯 =================
+    const processDrawResult = (q = "", isDaily = false) => {
         const c = tarotCards[Math.floor(Math.random() * tarotCards.length)];
         const isReversed = Math.random() < 0.5;
         const positionLabel = isReversed ? "[逆位]" : "[正位]";
         const meaning = isReversed ? c.rev : c.up;
         const imgStyle = isReversed ? "transform: rotate(180deg);" : "";
 
-        const zodiacs = ["牡羊","白羊","金牛","雙子","巨蟹","獅子","處女","天秤","天蠍","射手","摩羯","水瓶","雙魚"];
-        const matched = zodiacs.filter(z => q.includes(z));
+        modalTitle.innerText = isDaily ? "今日宇宙神諭" : "🔮 AI 靈魂解答";
 
-        // TREASURE 彩蛋
-        if (q.toLowerCase().includes("treasure") || q.toLowerCase().includes("truz")) {
-            modalTitle.innerText = "💎 宇宙特別彩蛋";
-            modalBody.innerHTML = `<div class="py-4"><h1 class="display-4 fw-bold text-info">TREASURE MAKER</h1><p>不管牌面怎麼說，10人體制永遠是最棒的！快去聽 DARARI 吧！</p></div>`;
-            return;
-        }
+        const contentHTML = isDaily
+            ? `<p class="small px-3 mt-3">【${positionLabel}】${meaning}</p>`
+            : (q ? getAiInterpretation(q, c.name, positionLabel, meaning) : `<p class="small px-3 mt-3">你什麼都沒問，宇宙先送你一張牌：【${positionLabel}】${meaning}</p>`);
 
-        // 星象配對邏輯
-        if (matched.length >= 2) {
-            const z1 = matched[0];
-            const z2 = matched[1];
+        const luckySection = isDaily ? getLuckyHTML() : "";
 
-            const elements = {
-                "火": ["牡羊", "白羊", "獅子", "射手"],
-                "土": ["金牛", "處女", "摩羯"],
-                "風": ["雙子", "天秤", "水瓶"],
-                "水": ["巨蟹", "天蠍", "雙魚"]
-            };
-
-            let e1 = Object.keys(elements).find(k => elements[k].includes(z1)) || "未知";
-            let e2 = Object.keys(elements).find(k => elements[k].includes(z2)) || "未知";
-
-            let score = 75;
-            let comment = "";
-
-            if ((z1 === "雙魚" && z2 === "巨蟹") || (z1 === "巨蟹" && z2 === "雙魚")) {
-                score = 99;
-                comment = "命中注定的靈魂伴侶！巨蟹的細膩溫柔完美接住了雙魚的浪漫，這對組合甜到連宇宙都嫉妒啦！🦀🐟";
-            } else if (e1 === e2) {
-                score = 85 + ((z1.charCodeAt(0) + z2.charCodeAt(0)) % 10);
-                comment = `同為${e1}象星座，你們有著天然的默契，像照鏡子一樣懂對方！但也小心缺點被互相放大喔。`;
-            } else if ((e1==='火'&&e2==='風') || (e1==='風'&&e2==='火') || (e1==='土'&&e2==='水') || (e1==='水'&&e2==='土')) {
-                score = 90 + ((z1.charCodeAt(0) + z2.charCodeAt(0)) % 10);
-                comment = `完美互補！${e1}象與${e2}象的結合，讓你們的相處充滿火花與共同成長的動力。`;
-            } else if ((e1==='火'&&e2==='水') || (e1==='水'&&e2==='火') || (e1==='土'&&e2==='風') || (e1==='風'&&e2==='土')) {
-                score = 60 + ((z1.charCodeAt(0) + z2.charCodeAt(0)) % 10);
-                comment = `水火不容還是相愛相殺？${e1}象與${e2}象需要極大的耐心去理解彼此截然不同的腦迴路。`;
-            } else {
-                score = 75 + ((z1.charCodeAt(0) + z2.charCodeAt(0)) % 10);
-                comment = `充滿挑戰但也充滿驚喜！你們需要找到彼此步調的平衡點，才能走得更長久。`;
-            }
-
-            modalTitle.innerText = `❤️ ${z1} & ${z2} 相性診斷`;
-            modalBody.innerHTML = `<div class="py-4"><h1 class="display-3 fw-bold text-info">${score}%</h1><p class="mt-3 px-3" style="line-height: 1.6;">宇宙分析：${comment}</p></div>`;
-        } else {
-            modalTitle.innerText = isDaily ? "今日宇宙神諭" : "🔮 AI 靈魂解答";
-
-            const contentHTML = isDaily
-                ? `<p class="small px-3 mt-3">【${positionLabel}】${meaning}</p>`
-                : (q ? getAiInterpretation(q, c.name, positionLabel, meaning) : `<p class="small px-3 mt-3">你什麼都沒問，宇宙先送你一張牌：【${positionLabel}】${meaning}</p>`);
-
-            const luckySection = isDaily ? getLuckyHTML() : "";
-
-            modalBody.innerHTML = `
-                <div class="card-container mb-3">
-                    <div class="card-inner" id="flip-target">
-                        <div class="card-front"></div>
-                        <div class="card-back"><img src="${c.image}" style="${imgStyle}"></div>
-                    </div>
+        modalBody.innerHTML = `
+            <div class="card-container mb-3">
+                <div class="card-inner" id="flip-target">
+                    <div class="card-front"></div>
+                    <div class="card-back"><img src="${c.image}" style="${imgStyle}"></div>
                 </div>
-                <h5 class="text-accent mt-3">${c.name} <span class="badge bg-secondary" style="font-size: 0.7rem;">${positionLabel}</span></h5>
-                ${contentHTML}
-                <p class="text-info small mt-3 border-top border-secondary pt-2">${getTimeAdvice()}</p>
-                ${luckySection}
-            `;
-            setTimeout(() => {
-                const target = document.getElementById('flip-target');
-                if (target) target.classList.add('is-flipped');
-            }, 150);
-        }
+            </div>
+            <h5 class="text-accent mt-3">${c.name} <span class="badge bg-secondary" style="font-size: 0.7rem;">${positionLabel}</span></h5>
+            ${contentHTML}
+            <p class="text-info small mt-3 border-top border-secondary pt-2">${getTimeAdvice()}</p>
+            ${luckySection}
+        `;
+        setTimeout(() => {
+            const target = document.getElementById('flip-target');
+            if (target) target.classList.add('is-flipped');
+        }, 150);
     };
 
-    drawLotBtn.addEventListener('click', () => processDraw(userQuestionInput.value.trim(), false));
-
-    // ================= 7. 截圖下載 =================
+    // ================= 8. 截圖下載 =================
     document.getElementById('download-btn').addEventListener('click', () => {
         const area = document.getElementById('capture-area');
         const currentBg = getComputedStyle(document.body).getPropertyValue('--bg-color');
