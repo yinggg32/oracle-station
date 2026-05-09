@@ -4,47 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>命運中轉站 | Oracle's Decision Station</title>
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="noise-overlay"></div>
-
     <div class="container py-5 content-wrapper">
-        <!-- 頂部功能列 -->
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <button id="theme-toggle" class="btn btn-outline-secondary btn-sm rounded-pill shadow-sm">
-                切換明亮晨光 ☀️
-            </button>
+            <button id="theme-toggle" class="btn btn-outline-secondary btn-sm rounded-pill shadow-sm">切換明亮晨光 ☀️</button>
             <div id="auth-section">
-                <button id="login-btn" class="btn btn-sm btn-outline-primary rounded-pill shadow-sm">
-                    登入解鎖運勢紀錄 🔮
-                </button>
+                <button id="login-btn" class="btn btn-sm btn-outline-primary rounded-pill shadow-sm">登入解鎖運勢紀錄 🔮</button>
                 <div id="user-profile" class="d-none align-items-center">
                     <span id="user-name" class="me-3 small fw-bold" style="color: var(--accent-color);"></span>
-                    <button id="history-btn" class="btn btn-sm btn-outline-warning rounded-pill me-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#historyModal">
-                        命運日曆 📜
-                    </button>
+                    <button id="history-btn" class="btn btn-sm btn-outline-warning rounded-pill me-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#historyModal">命運日曆 📜</button>
                     <button id="logout-btn" class="btn btn-sm btn-outline-danger rounded-pill shadow-sm">登出</button>
                 </div>
             </div>
         </div>
-
         <header class="text-center mb-5">
             <h1 class="display-4 fw-bold mystical-title">命運中轉站</h1>
             <p class="lead">宇宙的處理器正在運轉，請誠心發問</p>
         </header>
-
         <div class="row g-4">
             <div class="col-md-6">
                 <div class="card mystical-card h-100 text-center p-4 shadow">
                     <div class="card-body">
                         <h2 class="card-title mb-4">今日塔羅神諭</h2>
-                        <p class="opacity-75 mb-3">從下方 22 張牌陣中，選取一張與你有感應的卡牌</p>
+                        <p class="opacity-75 mb-3">從下方牌陣中選取一張感應卡牌</p>
                         <button id="shuffle-btn" class="btn btn-sm btn-outline-secondary mb-3 rounded-pill">重新洗牌 🔀</button>
                         <div class="tarot-deck-wrapper mb-4">
                             <div class="tarot-deck" id="tarot-deck-container"></div>
@@ -52,28 +40,23 @@
                     </div>
                 </div>
             </div>
-
             <div class="col-md-6">
                 <div class="card mystical-card h-100 text-center p-4 shadow">
                     <div class="card-body">
                         <h2 class="card-title mb-4">AI 靈魂診斷</h2>
-                        <p class="opacity-75 mb-3">輸入糾結的問題，或兩個星座（如：天秤 巨蟹）</p>
                         <input type="text" id="user-question" class="form-control mystical-input mb-4" placeholder="問問題 或 輸入兩星座">
-                        <button id="draw-lot-btn" class="btn btn-mystical w-100" data-bs-toggle="modal" data-bs-target="#resultModal">
-                            連結宇宙運算
-                        </button>
+                        <button id="draw-lot-btn" class="btn btn-mystical w-100" data-bs-toggle="modal" data-bs-target="#resultModal">連結宇宙運算</button>
                     </div>
                 </div>
             </div>
         </div>
-
         <footer class="text-center mt-5 disclaimer">
             <p>※ 本站由睡眠不足的開發者於半夜強行維護，內含 99% 玄學與 1% 的 Bug ※</p>
             <p class="small opacity-50">&copy; 2026 Oracle Station | NKNU SEM</p>
         </footer>
     </div>
 
-    <!-- 占卜結果 Modal -->
+    <!-- Modal 區域 -->
     <div class="modal fade" id="resultModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div id="capture-area" class="modal-content mystical-modal p-2 shadow-lg">
@@ -84,13 +67,11 @@
                 <div class="modal-body text-center" id="modal-body"></div>
                 <div class="modal-footer border-0 justify-content-center">
                     <button id="download-btn" class="btn btn-sm btn-outline-info rounded-pill me-2">下載結果 📸</button>
-                    <button class="btn btn-sm btn-outline-secondary rounded-pill" data-bs-dismiss="modal">感謝宇宙指引</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 歷史紀錄 Modal -->
     <div class="modal fade" id="historyModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content mystical-modal p-2 shadow-lg">
@@ -104,11 +85,7 @@
     </div>
 
     <script type="importmap">
-    {
-      "imports": {
-        "@google/generative-ai": "https://esm.run/@google/generative-ai"
-      }
-    }
+    { "imports": { "@google/generative-ai": "https://esm.run/@google/generative-ai" } }
     </script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
@@ -116,17 +93,14 @@
         import { getFirestore, collection, addDoc, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { GoogleGenerativeAI } from "@google/generative-ai";
 
-        // 安全的 Firebase 配置設定
         const firebaseConfig = {
             apiKey: "AIzaSyCmXEqjjpvPMvb3ms3xEKiV9bVd5bgCzUg",
             authDomain: "oracle-station-a187f.firebaseapp.com",
             projectId: "oracle-station-a187f",
             storageBucket: "oracle-station-a187f.firebasestorage.app",
             messagingSenderId: "819786930760",
-            appId: "1:819786930760:web:db16c7486a9d65b6d8567d",
-            measurementId: "G-3Y59W94T24"
+            appId: "1:819786930760:web:db16c7486a9d65b6d8567d"
         };
-
         const app = initializeApp(firebaseConfig);
         window.firebaseAuth = getAuth(app);
         window.firebaseDb = getFirestore(app);
@@ -142,7 +116,6 @@
         window.orderBy = orderBy;
         window.GoogleGenerativeAI = GoogleGenerativeAI;
     </script>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="script.js"></script>
 </body>

@@ -3,54 +3,29 @@
     --accent-color: #58a6ff; --glow-color: rgba(88, 166, 255, 0.5);
     --input-bg: rgba(13, 17, 23, 0.8); --modal-bg: #161b22; --border-color: rgba(255, 255, 255, 0.1);
     --btn-close-filter: invert(1); --muted-text: #a3b3c4;
-    --song-name-color: #7dd3fc;
 }
-
 body.light-theme {
     --bg-color: #fcfaf2; --text-color: #3e3e3e; --card-bg: rgba(255, 255, 255, 0.8);
     --accent-color: #b08d57; --glow-color: rgba(176, 141, 87, 0.3);
     --input-bg: rgba(255, 255, 255, 0.8); --modal-bg: #fdfdfd; --border-color: rgba(176, 141, 87, 0.3);
     --btn-close-filter: invert(0); --muted-text: #6c757d;
-    --song-name-color: #0369a1;
 }
-
-body {
-    background-color: var(--bg-color); color: var(--text-color); font-family: 'Noto Serif TC', serif;
-    transition: 0.4s ease; min-height: 100vh; overflow-x: hidden;
-}
-
-.noise-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: url('https://grainy-gradients.vercel.app/noise.svg'); opacity: 0.05; pointer-events: none; z-index: 9999;
-}
-
+body { background-color: var(--bg-color); color: var(--text-color); font-family: 'Noto Serif TC', serif; transition: 0.4s; min-height: 100vh; }
+.noise-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://grainy-gradients.vercel.app/noise.svg'); opacity: 0.05; pointer-events: none; z-index: 9999; }
 .mystical-title { color: var(--accent-color); text-shadow: 0 0 20px var(--glow-color); }
 .mystical-card, .modal-content { background: var(--card-bg); backdrop-filter: blur(12px); border: 1px solid var(--border-color); border-radius: 20px; color: var(--text-color) !important; }
-.mystical-modal { background-color: var(--modal-bg) !important; border-radius: 12px; }
-.text-muted { color: var(--muted-text) !important; }
-.opacity-75 { opacity: 0.9 !important; }
-
+.mystical-input { background-color: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); text-align: center; }
 .btn-mystical { background: transparent; color: var(--accent-color); border: 1px solid var(--accent-color); padding: 12px 40px; border-radius: 50px; font-weight: bold; transition: 0.3s; }
 .btn-mystical:hover { background: var(--accent-color); color: var(--bg-color); box-shadow: 0 0 15px var(--glow-color); }
-.mystical-input { background-color: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); text-align: center; }
-
-/* 塔羅牌區 */
-.tarot-deck-wrapper { width: 100%; overflow-x: auto; padding-bottom: 30px; scrollbar-width: none; }
-.tarot-deck-wrapper::-webkit-scrollbar { display: none; }
-.tarot-deck { display: flex; justify-content: center; padding-top: 20px; min-width: 300px; }
-.deck-card { width: 40px; height: 75px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid var(--accent-color); border-radius: 6px; margin-left: -25px; cursor: pointer; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); flex-shrink: 0; }
+.tarot-deck { display: flex; justify-content: center; padding-top: 20px; }
+.deck-card { width: 40px; height: 75px; background: #1e293b; border: 1px solid var(--accent-color); border-radius: 6px; margin-left: -25px; cursor: pointer; transition: 0.3s; }
 .deck-card:first-child { margin-left: 0; }
-.deck-card::after { content: "🔮"; display: flex; justify-content: center; align-items: center; height: 100%; opacity: 0.6; font-size: 1rem; }
-.deck-card:hover { transform: translateY(-20px) rotate(-5deg); z-index: 100; box-shadow: 0 10px 20px var(--glow-color); }
-.deck-card.dealing { transform: translateX(-150px) translateY(-50px) rotate(-30deg); opacity: 0; }
-
-/* Modal 3D 翻牌 */
-.btn-close { filter: var(--btn-close-filter); }
+.deck-card:hover { transform: translateY(-20px); z-index: 100; box-shadow: 0 10px 20px var(--glow-color); }
 .card-container { perspective: 1000px; width: 160px; height: 270px; margin: 0 auto; }
 .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s; transform-style: preserve-3d; }
 .card-inner.is-flipped { transform: rotateY(180deg); }
 .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 15px; overflow: hidden; }
-.card-front { background: #1e293b; border: 2px solid var(--accent-color); display: flex; align-items: center; justify-content: center; font-size: 3rem; }
+.card-front { background: #1e293b; border: 2px solid var(--accent-color); }
 .card-back { transform: rotateY(180deg); }
 .card-back img { width: 100%; height: 100%; object-fit: cover; }
-.yt-link-btn { position: relative; z-index: 9999; }
+.btn-close { filter: var(--btn-close-filter); }
