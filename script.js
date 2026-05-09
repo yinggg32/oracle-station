@@ -8,6 +8,91 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalTitle = document.getElementById('modal-title');
     const modalBody = document.getElementById('modal-body');
 
+    // ================= 0. Firebase 登入與資料庫邏輯 =================
+    const auth = window.firebaseAuth;
+    const db = window.firebaseDb;
+    let currentUser = null;
+
+    const loginBtn = document.getElementById('login-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    const userProfile = document.getElementById('user-profile');
+    const userNameDisplay = document.getElementById('user-name');
+    const historyBtn = document.getElementById('history-btn');
+    const historyBody = document.getElementById('history-modal-body');
+
+    // 監聽登入狀態
+    window.onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUser = user;
+            loginBtn.classList.add('d-none');
+            userProfile.classList.remove('d-none');
+            userNameDisplay.innerText = `歡迎，${user.displayName.split(' ')[0]}`;
+        } else {
+            currentUser = null;
+            loginBtn.classList.remove('d-none');
+            userProfile.classList.add('d-none');
+        }
+    });
+
+    // 執行 Google 登入
+    loginBtn.addEventListener('click', () => {
+        const provider = new window.GoogleAuthProvider();
+        window.signInWithPopup(auth, provider).catch(error => {
+            console.error("登入失敗：", error);
+            alert("登入遇到點問題，請稍後再試！");
+        });
+    });
+
+    // 執行登出
+    logoutBtn.addEventListener('click', () => {
+        window.signOut(auth);
+    });
+
+    // 讀取命運日曆 (歷史紀錄)
+    historyBtn.addEventListener('click', async () => {
+        if (!currentUser) return;
+        historyBody.innerHTML = '<div class="text-center my-4"><div class="spinner-border text-warning" role="status"></div><p class="mt-2 small text-muted">正在翻閱宇宙檔案室...</p></div>';
+
+        try {
+            const q = window.query(window.collection(db, "fortuneHistory"), window.where("uid", "==", currentUser.uid));
+            const querySnapshot = await window.getDocs(q);
+
+            let records = [];
+            querySnapshot.forEach((doc) => records.push(doc.data()));
+
+            // 依時間從新到舊排序 (避免在 Firebase 設複合索引的麻煩)
+            records.sort((a, b) => b.timestamp.toMillis() - a.timestamp.toMillis());
+
+            if (records.length === 0) {
+                historyBody.innerHTML = '<p class="text-center mt-3 text-muted">你還沒有留下任何運勢軌跡喔！</p>';
+                return;
+            }
+
+            let html = '<ul class="list-group list-group-flush" style="background: transparent;">';
+            records.forEach(r => {
+                const dateObj = r.timestamp.toDate();
+                const timeString = `${dateObj.getMonth()+1}/${dateObj.getDate()} ${dateObj.getHours().toString().padStart(2,'0')}:${dateObj.getMinutes().toString().padStart(2,'0')}`;
+
+                html += `
+                <li class="list-group-item mb-2 rounded shadow-sm" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color);">
+                    <div class="d-flex justify-content-between w-100">
+                        <small class="text-info">${timeString}</small>
+                        <small class="text-muted">${r.question || '每日神諭'}</small>
+                    </div>
+                    <div class="mt-2 fw-bold" style="color: var(--accent-color);">
+                        ${r.cardName} <span class="badge bg-secondary" style="font-size: 0.6rem;">${r.position}</span>
+                    </div>
+                </li>`;
+            });
+            html += '</ul>';
+            historyBody.innerHTML = html;
+
+        } catch (error) {
+            console.error("讀取歷史紀錄失敗：", error);
+            historyBody.innerHTML = '<p class="text-center text-danger mt-3">宇宙連線異常，無法讀取紀錄。</p>';
+        }
+    });
+
     // ================= 1. 22 張塔羅牌 =================
     const tarotCards = [
         { name: "0. 愚者", image: "https://upload.wikimedia.org/wikipedia/commons/9/90/RWS_Tarot_00_Fool.jpg", up: "冒險與新開始，純真的出發。", rev: "魯莽的行為、猶豫不決。" },
@@ -65,9 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="col-4 border-end border-secondary"><strong>幸運物</strong><br>${item}</div>
                 <div class="col-4 border-end border-secondary"><strong>幸運色</strong><br>${color}</div>
                 <div class="col-4"><strong>今日推薦曲</strong><br>
-                    <a href="${song.url}" target="_blank" rel="noopener noreferrer" class="yt-link-btn">
-                        ▶️ 去播放
-                    </a>
+                    <a href="${song.url}" target="_blank" rel="noopener noreferrer" class="yt-link-btn">▶️ 去播放</a>
                 </div>
             </div>
             <div class="text-center mt-2 small song-title-text">${song.name}</div>
@@ -80,7 +163,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return hour >= 22 || hour === 0 ? "🌙 深夜感性最強，聽從你的潛意識。" : "☀️ 日光充足，適合理性決定。";
     };
 
-    // ================= 3. AI 解讀引擎 (精準關聯版) =================
     const getAiInterpretation = (q, cardName, positionLabel, meaning) => {
         let category = "default";
         const lowerQ = q.toLowerCase();
@@ -90,40 +172,23 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (lowerQ.includes("告白") || lowerQ.includes("喜歡") || lowerQ.includes("暈船") || lowerQ.includes("男") || lowerQ.includes("女")) category = "love";
 
         const aiTemplates = {
-            food: [
-                `牌面顯示「${meaning}」。看來【${cardName}】在告訴你：別猶豫，去吃那個你直覺想到的東西（比如 Subway 的期間限定或是燒肉）！`,
-                `既然是【${cardName} ${positionLabel}】，代表「${meaning}」。吃頓好的犒賞自己也是一種對能量的平衡。`
-            ],
-            study: [
-                `這張牌的能量是「${meaning}」。帶著這股力量，把你的 MacBook 打開，專注地完成進度吧！`,
-                `宇宙透過【${cardName}】暗示：「${meaning}」。如果現在卡關了，休息一下其實是為了走更長的路。`
-            ],
-            love: [
-                `別再糾結啦！【${cardName}】說「${meaning}」。這代表你需要先把自己照顧好，吸引力才會由內而外散發。`,
-                `如果你在猶豫要不要主動，【${cardName}】的能量預示「${meaning}」。順著心意去做，不論結果如何都是成長。`
-            ],
-            money: [
-                `錢沒有不見，只是變成了你喜歡的樣子。但既然牌面顯示「${meaning}」，買之前還是稍微確認一下銀行存款吧！`,
-                `這是一個關於「${meaning}」的轉折。對於你想買的東西，【${cardName}】建議你聽從第一秒的直覺。`
-            ],
-            default: [
-                `這問題連宇宙都要思考一下... 但【${cardName}】給了你明確的暗示：「${meaning}」。聽從內心的直覺吧！`,
-                `不要執著於眼前的困境，這張牌說「${meaning}」，這其實是給你一個重新審視的機會。`
-            ]
+            food: [`牌面顯示「${meaning}」。看來【${cardName}】在告訴你：別猶豫，去吃那個你直覺想到的東西！`, `既然是【${cardName} ${positionLabel}】，代表「${meaning}」。吃頓好的犒賞自己也是一種對能量的平衡。`],
+            study: [`這張牌的能量是「${meaning}」。帶著這股力量，把你的 MacBook 打開，專注地完成進度吧！`, `宇宙透過【${cardName}】暗示：「${meaning}」。如果現在卡關了，休息一下其實是為了走更長的路。`],
+            love: [`別再糾結啦！【${cardName}】說「${meaning}」。這代表你需要先把自己照顧好，吸引力才會由內而外散發。`, `如果你在猶豫要不要主動，【${cardName}】的能量預示「${meaning}」。順著心意去做，不論結果如何都是成長。`],
+            money: [`錢沒有不見，只是變成了你喜歡的樣子。但既然牌面顯示「${meaning}」，買之前還是稍微確認一下銀行存款吧！`, `這是一個關於「${meaning}」的轉折。對於你想買的東西，【${cardName}】建議你聽從第一秒的直覺。`],
+            default: [`這問題連宇宙都要思考一下... 但【${cardName}】給了你明確的暗示：「${meaning}」。聽從內心的直覺吧！`, `不要執著於眼前的困境，這張牌說「${meaning}」，這其實是給你一個重新審視的機會。`]
         };
         const randomComment = aiTemplates[category][Math.floor(Math.random() * aiTemplates[category].length)];
         return `
             <div class="text-start mt-3 px-2">
                 <p class="mb-2"><strong>🔮 牌面本意：</strong>${meaning}</p>
                 <div class="p-3 rounded mt-2 shadow-sm" style="background: rgba(88, 166, 255, 0.1); border-left: 4px solid var(--accent-color);">
-                    <strong>🤖 AI 綜合解讀：</strong><br>
-                    <span style="font-size: 0.95rem; line-height: 1.6;">${randomComment}</span>
+                    <strong>🤖 AI 綜合解讀：</strong><br><span style="font-size: 0.95rem; line-height: 1.6;">${randomComment}</span>
                 </div>
-            </div>
-        `;
+            </div>`;
     };
 
-    // ================= 4. 主畫面：牌組渲染 =================
+    // ================= 3. 牌組渲染與主題切換 =================
     const renderMainDeck = () => {
         deckContainer.innerHTML = '';
         for (let i = 0; i < 22; i++) {
@@ -139,25 +204,21 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     };
-
     shuffleBtn.addEventListener('click', renderMainDeck);
     renderMainDeck();
 
-    // ================= 5. 主題切換 =================
     const updateThemeButton = () => {
         const isLight = document.body.classList.contains('light-theme');
         themeToggleBtn.innerText = isLight ? '切換神秘午夜 🌙' : '切換明亮晨光 ☀️';
     };
-
     if (localStorage.getItem('theme') === 'light') { document.body.classList.add('light-theme'); updateThemeButton(); }
-
     themeToggleBtn.addEventListener('click', () => {
         document.body.classList.toggle('light-theme');
         localStorage.setItem('theme', document.body.classList.contains('light-theme') ? 'light' : 'dark');
         updateThemeButton();
     });
 
-    // ================= 6. 右側問題邏輯 =================
+    // ================= 4. 右側問題邏輯 =================
     const handleRightSideSubmit = () => {
         const q = userQuestionInput.value.trim();
         const lowerQ = q.toLowerCase();
@@ -185,11 +246,8 @@ document.addEventListener('DOMContentLoaded', () => {
         modalTitle.innerText = q ? "✨ 請抽取一張牌" : "✨ 宇宙指引中";
         modalBody.innerHTML = `
             <p class="text-info small mb-4">關於：「${q || '今日運勢'}」</p>
-            <div class="tarot-deck-wrapper mb-4">
-                <div class="tarot-deck" id="modal-deck-container"></div>
-            </div>
-            <p class="small text-muted">憑直覺點擊一張牌</p>
-        `;
+            <div class="tarot-deck-wrapper mb-4"><div class="tarot-deck" id="modal-deck-container"></div></div>
+            <p class="small text-muted">憑直覺點擊一張牌</p>`;
 
         const mDeck = document.getElementById('modal-deck-container');
         for (let i = 0; i < 22; i++) {
@@ -203,16 +261,30 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     };
-
     drawLotBtn.addEventListener('click', handleRightSideSubmit);
 
-    // ================= 7. 解答結果顯示 =================
-    const processDrawResult = (q = "", isDaily = false) => {
+    // ================= 5. 解答結果顯示與資料庫寫入 =================
+    const processDrawResult = async (q = "", isDaily = false) => {
         const c = tarotCards[Math.floor(Math.random() * tarotCards.length)];
         const isReversed = Math.random() < 0.5;
         const positionLabel = isReversed ? "[逆位]" : "[正位]";
         const meaning = isReversed ? c.rev : c.up;
         const imgStyle = isReversed ? "transform: rotate(180deg);" : "";
+
+        // 如果使用者有登入，將抽牌結果寫入 Firebase
+        if (currentUser) {
+            try {
+                await window.addDoc(window.collection(db, "fortuneHistory"), {
+                    uid: currentUser.uid,
+                    question: q,
+                    cardName: c.name,
+                    position: positionLabel,
+                    timestamp: new Date()
+                });
+            } catch (e) {
+                console.error("寫入資料庫失敗：", e);
+            }
+        }
 
         modalTitle.innerText = isDaily ? "今日宇宙神諭" : "🔮 AI 靈魂解答";
         const contentHTML = isDaily ? `<p class="small px-3 mt-3">【${positionLabel}】${meaning}</p>` : getAiInterpretation(q, c.name, positionLabel, meaning);
@@ -233,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => { document.getElementById('flip-target').classList.add('is-flipped'); }, 150);
     };
 
-    // ================= 8. 截圖下載 =================
+    // ================= 6. 截圖下載 =================
     document.getElementById('download-btn').addEventListener('click', () => {
         const area = document.getElementById('capture-area');
         const currentBg = getComputedStyle(document.body).getPropertyValue('--bg-color');
