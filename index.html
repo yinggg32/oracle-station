@@ -8,23 +8,22 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="noise-overlay"></div>
 
     <div class="container py-5 content-wrapper">
-        <!-- 頂部功能列：主題切換與會員登入系統 -->
+        <!-- 頂部功能列 -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <button id="theme-toggle" class="btn btn-outline-secondary btn-sm rounded-pill shadow-sm">
                 切換明亮晨光 ☀️
             </button>
             <div id="auth-section">
-                <!-- 登入前顯示 -->
                 <button id="login-btn" class="btn btn-sm btn-outline-primary rounded-pill shadow-sm">
                     登入解鎖運勢紀錄 🔮
                 </button>
-                <!-- 登入後顯示 -->
                 <div id="user-profile" class="d-none align-items-center">
                     <span id="user-name" class="me-3 small fw-bold" style="color: var(--accent-color);"></span>
                     <button id="history-btn" class="btn btn-sm btn-outline-warning rounded-pill me-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#historyModal">
@@ -91,7 +90,7 @@
         </div>
     </div>
 
-    <!-- 歷史紀錄 Modal (命運日曆) -->
+    <!-- 歷史紀錄 Modal -->
     <div class="modal fade" id="historyModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content mystical-modal p-2 shadow-lg">
@@ -99,18 +98,24 @@
                     <h5 class="modal-title w-100 text-center fw-bold text-warning">📜 你的命運日曆</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body text-start" id="history-modal-body">
-                    <!-- JS 動態寫入歷史紀錄 -->
-                </div>
+                <div class="modal-body text-start" id="history-modal-body"></div>
             </div>
         </div>
     </div>
 
-    <!-- Firebase SDK (必須保留這段不動) -->
+    <!-- Firebase SDK & Gemini SDK (這段 Firebase config 放在公開 Repo 是安全的) -->
+    <script type="importmap">
+    {
+      "imports": {
+        "@google/generative-ai": "https://esm.run/@google/generative-ai"
+      }
+    }
+    </script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { GoogleGenerativeAI } from "@google/generative-ai";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCmXEqjjpvPMvb3ms3xEKiV9bVd5bgCzUg",
@@ -118,7 +123,8 @@
             projectId: "oracle-station-a187f",
             storageBucket: "oracle-station-a187f.firebasestorage.app",
             messagingSenderId: "819786930760",
-            appId: "1:819786930760:web:db16c7486a9d65b6d8567d"
+            appId: "1:819786930760:web:db16c7486a9d65b6d8567d",
+            measurementId: "G-3Y59W94T24"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -133,6 +139,8 @@
         window.getDocs = getDocs;
         window.query = query;
         window.where = where;
+        window.orderBy = orderBy;
+        window.GoogleGenerativeAI = GoogleGenerativeAI;
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
