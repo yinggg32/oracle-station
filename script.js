@@ -51,6 +51,9 @@ document.addEventListener('DOMContentLoaded', () => {
             let html = '<ul class="list-group list-group-flush">';
             records.forEach(r => {
                 const date = r.timestamp.toDate().toLocaleString();
+                // 只有「每日神諭」才有幸運色，右邊問問題不會有
+                const luckyHtml = r.luckyItem ? `<div class="mt-2 pt-2 border-top border-secondary small text-warning">幸運物：${r.luckyItem} | 幸運色：${r.luckyColor}</div>` : '';
+
                 html += `<li class="list-group-item bg-transparent text-light border-secondary py-3">
                     <div class="d-flex justify-content-between">
                         <small class="text-info">${date}</small>
@@ -58,16 +61,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div class="mt-1 fw-bold text-accent">${r.cardName} (${r.position})</div>
                     <div class="small mt-2" style="line-height: 1.5; color: var(--text-color);">${r.interpretation || '無文字紀錄'}</div>
-                    <div class="mt-2 pt-2 border-top border-secondary small text-warning">
-                        幸運物：${r.luckyItem || '無'} | 幸運色：${r.luckyColor || '無'}
-                    </div>
+                    ${luckyHtml}
                 </li>`;
             });
             historyBody.innerHTML = html + '</ul>';
         } catch (e) { historyBody.innerHTML = '<p class="text-danger text-center">連線異常</p>'; }
     });
 
-    // ================= 1. AI API (升級版模型) =================
+    // ================= 1. AI API (強制除錯版) =================
     async function getGeminiInterpretation(question, cardName, position) {
         let apiKey = localStorage.getItem("oracle_api_key");
 
@@ -76,23 +77,21 @@ document.addEventListener('DOMContentLoaded', () => {
             if (apiKey && apiKey.trim() !== "") {
                 localStorage.setItem("oracle_api_key", apiKey.trim());
             } else {
-                return "未提供金鑰，系統切換為離線模式。";
+                return "未提供金鑰，系統切換為純文字模式。";
             }
         }
 
         try {
             const genAI = new window.GoogleGenerativeAI(apiKey);
-            // 升級為 1.5-flash 模型，速度更快更穩
             const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
             const promptStr = `你是一位神秘但幽默的塔羅占卜師。使用者問：「${question}」。他抽中了「${cardName}」的「${position}」。請給出約80字的精準解讀，要包含對生活、感情或學業的建議，口氣可以像大學生(可用Bug, Deadline等詞)。不用講開場白。`;
             const result = await model.generateContent(promptStr);
             return result.response.text();
         } catch (e) {
-            if(e.message && e.message.includes("API key not valid")) {
-                localStorage.removeItem("oracle_api_key");
-                return "API 金鑰錯誤或過期，請重新整理網頁並輸入正確金鑰！";
-            }
-            return "宇宙通訊暫時中斷，AI 正在休息中...";
+            console.error("AI 發生錯誤：", e);
+            // 【關鍵修復】只要出錯，立刻清除舊密碼！
+            localStorage.removeItem("oracle_api_key");
+            return "宇宙通訊暫時中斷 ❌ (可能是金鑰無效或多按了空格)。\n系統已清除舊金鑰，請關閉視窗，再點一次抽牌重新輸入！";
         }
     }
 
@@ -141,10 +140,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const isReversed = Math.random() < 0.5;
         const pos = isReversed ? "逆位" : "正位";
 
-        // 抽取幸運屬性
-        const luckyItem = luckyStuff.items[Math.floor(Math.random() * luckyStuff.items.length)];
-        const luckyColor = luckyStuff.colors[Math.floor(Math.random() * luckyStuff.colors.length)];
-        const song = luckyStuff.songs[Math.floor(Math.random() * luckyStuff.songs.length)];
+        // 只有 isDaily (左側抽牌) 才會產生幸運物
+        let luckyItem = null, luckyColor = null, song = null;
+        if (isDaily) {
+            luckyItem = luckyStuff.items[Math.floor(Math.random() * luckyStuff.items.length)];
+            luckyColor = luckyStuff.colors[Math.floor(Math.random() * luckyStuff.colors.length)];
+            song = luckyStuff.songs[Math.floor(Math.random() * luckyStuff.songs.length)];
+        }
 
         modalTitle.innerText = "宇宙連接中...";
         modalBody.innerHTML = `<div class="spinner-border text-info my-4"></div><p class="small text-muted">正在呼叫 AI 靈魂解析...</p>`;
@@ -152,21 +154,41 @@ document.addEventListener('DOMContentLoaded', () => {
         // 等待 AI 產出解答
         const aiText = await getGeminiInterpretation(q || "今日運勢", c.name, pos);
 
-        // ★ 重點更新：AI 解答出來後，才將完整的資料寫入 Firebase 日曆
+        // 寫入 Firebase
         if (currentUser) {
-            window.addDoc(window.collection(db, "fortuneHistory"), {
+            let recordData = {
                 uid: currentUser.uid,
                 question: q,
                 cardName: c.name,
                 position: pos,
                 interpretation: aiText,
-                luckyItem: luckyItem,
-                luckyColor: luckyColor,
                 timestamp: new Date()
-            }).catch(e => console.log("寫入 Firebase 失敗", e));
+            };
+            if (isDaily) {
+                recordData.luckyItem = luckyItem;
+                recordData.luckyColor = luckyColor;
+            }
+            window.addDoc(window.collection(db, "fortuneHistory"), recordData).catch(e => console.log("寫入失敗", e));
         }
 
-        // 渲染畫面 (包含幸運色與幸運物)
+        // 動態生成 HTML：如果不是每日神諭，就不顯示幸運方塊
+        let extraHtml = "";
+        if (isDaily) {
+            extraHtml = `
+            <div class="mt-4 p-3 rounded" style="background: rgba(255,255,255,0.05); border: 1px dashed var(--accent-color);">
+                <div class="row g-2 small text-center align-items-center mb-2">
+                    <div class="col-6 border-end border-secondary"><strong>幸運物</strong><br>${luckyItem}</div>
+                    <div class="col-6"><strong>幸運色</strong><br>${luckyColor}</div>
+                </div>
+                <div class="border-top border-secondary pt-2 mt-2">
+                    <div class="small fw-bold mb-1">今日推薦曲</div>
+                    <button onclick="window.open('${song.url}', '_blank')" class="btn btn-sm btn-info rounded-pill yt-link-btn shadow">▶️ 去播放</button>
+                    <div class="mt-1 small" style="color: var(--song-name-color);">${song.name}</div>
+                </div>
+            </div>`;
+        }
+
+        // 渲染畫面
         modalBody.innerHTML = `
             <div class="card-container mb-3">
                 <div class="card-inner" id="flip-target">
@@ -180,33 +202,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 <strong>🤖 AI 靈魂解析：</strong><br><span style="font-size: 0.95rem; line-height: 1.6;">${aiText}</span>
             </div>
 
-            <div class="mt-4 p-3 rounded" style="background: rgba(255,255,255,0.05); border: 1px dashed var(--accent-color);">
-                <div class="row g-2 small text-center align-items-center mb-2">
-                    <div class="col-6 border-end border-secondary"><strong>幸運物</strong><br>${luckyItem}</div>
-                    <div class="col-6"><strong>幸運色</strong><br>${luckyColor}</div>
-                </div>
-                <div class="border-top border-secondary pt-2 mt-2">
-                    <div class="small fw-bold mb-1">今日推薦曲</div>
-                    <button onclick="window.open('${song.url}', '_blank')" class="btn btn-sm btn-info rounded-pill yt-link-btn shadow">▶️ 去播放</button>
-                    <div class="mt-1 small" style="color: var(--song-name-color);">${song.name}</div>
-                </div>
-            </div>
+            ${extraHtml}
         `;
         setTimeout(() => document.getElementById('flip-target').classList.add('is-flipped'), 100);
     };
 
-    // ================= 4. 右側邏輯防呆與星座配對 (修復版) =================
+    // ================= 4. 右側邏輯防呆與星座配對 =================
     drawLotBtn.addEventListener('click', () => {
         const q = userQuestionInput.value.trim().toLowerCase();
 
-        // 彩蛋攔截
         if (q.includes("treasure") || q.includes("truz")) {
             modalTitle.innerText = "💎 宇宙特別彩蛋";
             modalBody.innerHTML = `<div class="py-4"><h1 class="display-4 fw-bold text-info">TREASURE MAKER</h1><p>10人體制永遠是最棒的！祝你期中報告跟看控一樣開心！💎</p></div>`;
             return;
         }
 
-        // 星座配對攔截 (修復版)
         const zodiacs = ["牡羊","白羊","金牛","雙子","巨蟹","獅子","處女","天秤","天蠍","射手","摩羯","水瓶","雙魚"];
         const matched = zodiacs.filter(z => q.includes(z));
 
@@ -215,7 +225,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const elements = { "火": ["牡羊", "白羊", "獅子", "射手"], "土": ["金牛", "處女", "摩羯"], "風": ["雙子", "天秤", "水瓶"], "水": ["巨蟹", "天蠍", "雙魚"] };
             let e1 = Object.keys(elements).find(k => elements[k].includes(z1));
             let e2 = Object.keys(elements).find(k => elements[k].includes(z2));
-            // 用字元編碼計算穩定的偽隨機分數
             let score = 80 + ((z1.charCodeAt(0) + z2.charCodeAt(0)) % 15);
 
             modalTitle.innerText = `❤️ ${z1} & ${z2} 星象診斷`;
@@ -224,10 +233,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h1 class="display-1 fw-bold text-info" style="text-shadow: 0 0 15px var(--glow-color);">${score}%</h1>
                     <p class="mt-3 px-3 text-light">宇宙分析：這組 ${e1}象 與 ${e2}象 的配對，充滿了${e1 === e2 ? '天然的默契' : '意想不到的火花'}！</p>
                 </div>`;
-            return; // 終止函數，不進入抽牌
+            return;
         }
 
-        // 一般問題進入抽牌
+        // 一般問題進入抽牌 (不帶入 isDaily 參數，所以右側不會顯示幸運物)
         processDraw(q);
     });
 
@@ -243,13 +252,13 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => card.classList.remove('dealing'), i * 30);
             card.onclick = () => {
                 modalBody.innerHTML = `<div class="spinner-border text-info my-4"></div>`;
+                // 左側抽牌帶入 true，表示是每日神諭，會顯示幸運物
                 setTimeout(() => processDraw("", true), 500);
             };
         }
     };
     shuffleBtn.onclick = renderDeck; renderDeck();
 
-    // 主題切換與截圖
     if (localStorage.getItem('theme') === 'light') document.body.classList.add('light-theme');
     themeToggleBtn.onclick = () => {
         document.body.classList.toggle('light-theme');
