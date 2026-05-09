@@ -44,7 +44,7 @@ body {
 .deck-card:hover { transform: translateY(-20px) rotate(-5deg); z-index: 100; box-shadow: 0 10px 20px var(--glow-color); }
 .deck-card.dealing { transform: translateX(-150px) translateY(-50px) rotate(-30deg); opacity: 0; }
 
-/* Modal 3D 翻牌與按鈕防雷 */
+/* Modal 3D 翻牌 */
 .btn-close { filter: var(--btn-close-filter); }
 .card-container { perspective: 1000px; width: 160px; height: 270px; margin: 0 auto; }
 .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s; transform-style: preserve-3d; }

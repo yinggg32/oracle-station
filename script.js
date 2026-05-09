@@ -31,65 +31,72 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    loginBtn.addEventListener('click', () => window.signInWithPopup(auth, new window.GoogleAuthProvider()).catch(e => alert("登入失敗")));
+    loginBtn.addEventListener('click', () => window.signInWithPopup(auth, new window.GoogleAuthProvider()).catch(e => alert("登入失敗，請確認已在 Firebase 授權你的網域！")));
     logoutBtn.addEventListener('click', () => window.signOut(auth));
 
+    // 命運日曆 (顯示 AI 運勢紀錄)
     historyBtn.addEventListener('click', async () => {
         if (!currentUser) return;
-        historyBody.innerHTML = '<div class="text-center my-4"><div class="spinner-border text-warning"></div></div>';
+        historyBody.innerHTML = '<div class="text-center my-4"><div class="spinner-border text-warning"></div><p class="mt-2 small">翻閱宇宙檔案室中...</p></div>';
         try {
             const q = window.query(window.collection(db, "fortuneHistory"), window.where("uid", "==", currentUser.uid));
             const querySnapshot = await window.getDocs(q);
             let records = [];
             querySnapshot.forEach(doc => records.push(doc.data()));
-            records.sort((a, b) => b.timestamp.toMillis() - a.timestamp.toMillis());
+            records.sort((a, b) => b.timestamp.toMillis() - a.timestamp.toMillis()); // 新到舊排序
 
             if (records.length === 0) {
-                historyBody.innerHTML = '<p class="text-center text-muted">尚未留下運勢軌跡</p>'; return;
+                historyBody.innerHTML = '<p class="text-center text-muted mt-3">宇宙還沒記錄下你的軌跡哦！</p>'; return;
             }
             let html = '<ul class="list-group list-group-flush">';
             records.forEach(r => {
                 const date = r.timestamp.toDate().toLocaleString();
-                html += `<li class="list-group-item bg-transparent text-light border-secondary">
-                    <small class="text-info">${date}</small><br>
-                    <strong>問：${r.question || "每日運勢"}</strong><br>
-                    ${r.cardName} (${r.position})
+                html += `<li class="list-group-item bg-transparent text-light border-secondary py-3">
+                    <div class="d-flex justify-content-between">
+                        <small class="text-info">${date}</small>
+                        <small class="text-muted">${r.question || "日常神諭"}</small>
+                    </div>
+                    <div class="mt-1 fw-bold text-accent">${r.cardName} (${r.position})</div>
+                    <div class="small mt-2" style="line-height: 1.5; color: var(--text-color);">${r.interpretation || '無文字紀錄'}</div>
+                    <div class="mt-2 pt-2 border-top border-secondary small text-warning">
+                        幸運物：${r.luckyItem || '無'} | 幸運色：${r.luckyColor || '無'}
+                    </div>
                 </li>`;
             });
             historyBody.innerHTML = html + '</ul>';
         } catch (e) { historyBody.innerHTML = '<p class="text-danger text-center">連線異常</p>'; }
     });
 
-    // ================= 1. AI API 核心防護層 =================
+    // ================= 1. AI API (升級版模型) =================
     async function getGeminiInterpretation(question, cardName, position) {
         let apiKey = localStorage.getItem("oracle_api_key");
 
-        // 如果瀏覽器裡沒有金鑰，就跳出提示框詢問
         if (!apiKey) {
-            apiKey = prompt("宇宙大腦已鎖定 🔐\n請輸入你的 Gemini API Key 來喚醒 AI (只存在你的裝置中，絕不上傳)：");
+            apiKey = prompt("宇宙大腦已鎖定 🔐\n請輸入 Gemini API Key 來喚醒 AI (只存於本地端)：");
             if (apiKey && apiKey.trim() !== "") {
                 localStorage.setItem("oracle_api_key", apiKey.trim());
             } else {
-                return "未提供金鑰，系統改為純視覺模式。請重新整理網頁再試一次。";
+                return "未提供金鑰，系統切換為離線模式。";
             }
         }
 
         try {
             const genAI = new window.GoogleGenerativeAI(apiKey);
-            const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-            const promptStr = `你是一位神秘但幽默的塔羅占卜師。使用者問：「${question}」。他抽中了「${cardName}」的「${position}」。請給出約80字的精準解讀，要包含對生活或學業的建議，口氣像軟工系學生(可用Bug, Deadline等詞彙)。不用講開場白，直接給解讀。`;
+            // 升級為 1.5-flash 模型，速度更快更穩
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const promptStr = `你是一位神秘但幽默的塔羅占卜師。使用者問：「${question}」。他抽中了「${cardName}」的「${position}」。請給出約80字的精準解讀，要包含對生活、感情或學業的建議，口氣可以像大學生(可用Bug, Deadline等詞)。不用講開場白。`;
             const result = await model.generateContent(promptStr);
             return result.response.text();
         } catch (e) {
-            if(e.message.includes("API key not valid")) {
+            if(e.message && e.message.includes("API key not valid")) {
                 localStorage.removeItem("oracle_api_key");
-                return "API 金鑰錯誤或過期，已自動清除，請重新抽牌並輸入正確金鑰！";
+                return "API 金鑰錯誤或過期，請重新整理網頁並輸入正確金鑰！";
             }
             return "宇宙通訊暫時中斷，AI 正在休息中...";
         }
     }
 
-    // ================= 2. 塔羅資料與歌單 (完整版) =================
+    // ================= 2. 塔羅資料與幸運屬性 =================
     const tarotCards = [
         { name: "0. 愚者", image: "https://upload.wikimedia.org/wikipedia/commons/9/90/RWS_Tarot_00_Fool.jpg", up: "冒險與新開始", rev: "魯莽、猶豫" },
         { name: "1. 魔術師", image: "https://upload.wikimedia.org/wikipedia/commons/d/de/RWS_Tarot_01_Magician.jpg", up: "創造與執行力", rev: "能力未發揮" },
@@ -116,10 +123,10 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     const luckyStuff = {
+        items: ["底片相機", "熱燕麥拿鐵", "TRUZ 玩偶", "沒讀完的書", "透明手機殼", "護唇膏", "銀色戒指", "降噪耳機"],
+        colors: ["發光青", "午夜藍", "鼠尾草綠", "神秘紫", "極致灰", "琥珀橙", "奶茶色", "櫻花粉"],
         songs: [
             { name: "Vaundy - 怪獸の花唄", url: "https://www.youtube.com/watch?v=UM9XNwrubcg" },
-            { name: "Aimyon - 知道愛之前", url: "https://www.youtube.com/watch?v=E1JAU0T-E8w" },
-            { name: "Rex OC - Pluto Projector", url: "https://www.youtube.com/watch?v=piGWLEBIfzQ" },
             { name: "TREASURE - DARARI", url: "https://www.youtube.com/watch?v=71GqqX2f31A" },
             { name: "Mac Miller - The Spins", url: "https://www.youtube.com/watch?v=mkGVnnMvKEs" },
             { name: "Post Malone - Circles", url: "https://www.youtube.com/watch?v=wXhTHyIgQ_U" },
@@ -128,26 +135,38 @@ document.addEventListener('DOMContentLoaded', () => {
         ]
     };
 
-    // ================= 3. 主流程與渲染 =================
+    // ================= 3. 核心抽牌與儲存流程 =================
     const processDraw = async (q = "", isDaily = false) => {
         const c = tarotCards[Math.floor(Math.random() * tarotCards.length)];
         const isReversed = Math.random() < 0.5;
         const pos = isReversed ? "逆位" : "正位";
 
-        // 登入狀態下存入歷史紀錄
-        if (currentUser) {
-            window.addDoc(window.collection(db, "fortuneHistory"), {
-                uid: currentUser.uid, question: q, cardName: c.name, position: pos, timestamp: new Date()
-            }).catch(e => console.log("寫入失敗", e));
-        }
-
-        modalTitle.innerText = "宇宙連接中...";
-        modalBody.innerHTML = `<div class="spinner-border text-info my-4"></div><p class="small text-muted">正在呼叫 AI 靈魂...</p>`;
-
-        // 呼叫 Gemini
-        const aiText = await getGeminiInterpretation(q || "今日運勢", c.name, pos);
+        // 抽取幸運屬性
+        const luckyItem = luckyStuff.items[Math.floor(Math.random() * luckyStuff.items.length)];
+        const luckyColor = luckyStuff.colors[Math.floor(Math.random() * luckyStuff.colors.length)];
         const song = luckyStuff.songs[Math.floor(Math.random() * luckyStuff.songs.length)];
 
+        modalTitle.innerText = "宇宙連接中...";
+        modalBody.innerHTML = `<div class="spinner-border text-info my-4"></div><p class="small text-muted">正在呼叫 AI 靈魂解析...</p>`;
+
+        // 等待 AI 產出解答
+        const aiText = await getGeminiInterpretation(q || "今日運勢", c.name, pos);
+
+        // ★ 重點更新：AI 解答出來後，才將完整的資料寫入 Firebase 日曆
+        if (currentUser) {
+            window.addDoc(window.collection(db, "fortuneHistory"), {
+                uid: currentUser.uid,
+                question: q,
+                cardName: c.name,
+                position: pos,
+                interpretation: aiText,
+                luckyItem: luckyItem,
+                luckyColor: luckyColor,
+                timestamp: new Date()
+            }).catch(e => console.log("寫入 Firebase 失敗", e));
+        }
+
+        // 渲染畫面 (包含幸運色與幸運物)
         modalBody.innerHTML = `
             <div class="card-container mb-3">
                 <div class="card-inner" id="flip-target">
@@ -161,23 +180,54 @@ document.addEventListener('DOMContentLoaded', () => {
                 <strong>🤖 AI 靈魂解析：</strong><br><span style="font-size: 0.95rem; line-height: 1.6;">${aiText}</span>
             </div>
 
-            ${isDaily ? `<div class="mt-4 p-2 rounded" style="background: rgba(255,255,255,0.05); border: 1px dashed var(--accent-color);">
-                <div class="small fw-bold mb-1">今日推薦曲</div>
-                <button onclick="window.open('${song.url}', '_blank')" class="btn btn-sm btn-info rounded-pill yt-link-btn shadow">▶️ 去播放</button>
-                <div class="mt-2 small" style="color: var(--song-name-color);">${song.name}</div>
-            </div>` : ''}
+            <div class="mt-4 p-3 rounded" style="background: rgba(255,255,255,0.05); border: 1px dashed var(--accent-color);">
+                <div class="row g-2 small text-center align-items-center mb-2">
+                    <div class="col-6 border-end border-secondary"><strong>幸運物</strong><br>${luckyItem}</div>
+                    <div class="col-6"><strong>幸運色</strong><br>${luckyColor}</div>
+                </div>
+                <div class="border-top border-secondary pt-2 mt-2">
+                    <div class="small fw-bold mb-1">今日推薦曲</div>
+                    <button onclick="window.open('${song.url}', '_blank')" class="btn btn-sm btn-info rounded-pill yt-link-btn shadow">▶️ 去播放</button>
+                    <div class="mt-1 small" style="color: var(--song-name-color);">${song.name}</div>
+                </div>
+            </div>
         `;
         setTimeout(() => document.getElementById('flip-target').classList.add('is-flipped'), 100);
     };
 
-    // ================= 4. 右側邏輯防呆與彩蛋 =================
+    // ================= 4. 右側邏輯防呆與星座配對 (修復版) =================
     drawLotBtn.addEventListener('click', () => {
         const q = userQuestionInput.value.trim().toLowerCase();
+
+        // 彩蛋攔截
         if (q.includes("treasure") || q.includes("truz")) {
             modalTitle.innerText = "💎 宇宙特別彩蛋";
             modalBody.innerHTML = `<div class="py-4"><h1 class="display-4 fw-bold text-info">TREASURE MAKER</h1><p>10人體制永遠是最棒的！祝你期中報告跟看控一樣開心！💎</p></div>`;
             return;
         }
+
+        // 星座配對攔截 (修復版)
+        const zodiacs = ["牡羊","白羊","金牛","雙子","巨蟹","獅子","處女","天秤","天蠍","射手","摩羯","水瓶","雙魚"];
+        const matched = zodiacs.filter(z => q.includes(z));
+
+        if (matched.length >= 2) {
+            const z1 = matched[0]; const z2 = matched[1];
+            const elements = { "火": ["牡羊", "白羊", "獅子", "射手"], "土": ["金牛", "處女", "摩羯"], "風": ["雙子", "天秤", "水瓶"], "水": ["巨蟹", "天蠍", "雙魚"] };
+            let e1 = Object.keys(elements).find(k => elements[k].includes(z1));
+            let e2 = Object.keys(elements).find(k => elements[k].includes(z2));
+            // 用字元編碼計算穩定的偽隨機分數
+            let score = 80 + ((z1.charCodeAt(0) + z2.charCodeAt(0)) % 15);
+
+            modalTitle.innerText = `❤️ ${z1} & ${z2} 星象診斷`;
+            modalBody.innerHTML = `
+                <div class="py-4">
+                    <h1 class="display-1 fw-bold text-info" style="text-shadow: 0 0 15px var(--glow-color);">${score}%</h1>
+                    <p class="mt-3 px-3 text-light">宇宙分析：這組 ${e1}象 與 ${e2}象 的配對，充滿了${e1 === e2 ? '天然的默契' : '意想不到的火花'}！</p>
+                </div>`;
+            return; // 終止函數，不進入抽牌
+        }
+
+        // 一般問題進入抽牌
         processDraw(q);
     });
 

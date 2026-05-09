@@ -103,7 +103,6 @@
         </div>
     </div>
 
-    <!-- Firebase SDK & Gemini SDK (這段 Firebase config 放在公開 Repo 是安全的) -->
     <script type="importmap">
     {
       "imports": {
@@ -117,6 +116,7 @@
         import { getFirestore, collection, addDoc, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { GoogleGenerativeAI } from "@google/generative-ai";
 
+        // 安全的 Firebase 配置設定
         const firebaseConfig = {
             apiKey: "AIzaSyCmXEqjjpvPMvb3ms3xEKiV9bVd5bgCzUg",
             authDomain: "oracle-station-a187f.firebaseapp.com",
