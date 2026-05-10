@@ -62,3 +62,27 @@ body { background-color: var(--bg-color); color: var(--text-color); font-family:
     color: #ffffff !important; /* 解牌文字強制純白 */
     font-weight: 500; /* 讓字體稍微變粗一點點，更好讀 */
 }
+/* ☀️ 淺色模式 (明亮晨光) 專屬文字顏色拯救計畫 */
+
+/* 當 body 沒有 dark-theme 類別時（也就是淺色模式），強制替換文字顏色 */
+body:not(.dark-theme) .mystical-card,
+body:not(.dark-theme) .p-3 {
+    color: #2c3e50 !important; /* 把卡片內文改成深藏青/深灰色，清晰易讀 */
+}
+
+body:not(.dark-theme) .text-accent {
+    color: #b8860b !important; /* 標題改成較深的暗金色 (DarkGoldenRod)，既神祕又清楚 */
+    font-weight: bold !important;
+}
+
+body:not(.dark-theme) .text-muted {
+    color: #7f8c8d !important; /* 次要文字 (例如：從下方牌陣中選取...) 改為深灰色 */
+}
+
+body:not(.dark-theme) .mystical-input {
+    color: #2c3e50 !important; /* 讓輸入框打出來的字也是深色 */
+}
+
+body:not(.dark-theme) .mystical-input::placeholder {
+    color: #95a5a6 !important; /* 讓輸入框的提示字 (例如：晚餐吃什麼) 變成明顯的灰色 */
+}
