@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 🌟 1. 自動載入截圖工具 (html2canvas) 以修復下載功能
+    // 載入截圖套件
     if (!window.html2canvas) {
         const script = document.createElement('script');
         script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
@@ -20,7 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const historyBtn = document.getElementById('history-btn');
     const historyBody = document.getElementById('history-modal-body');
 
-    // 🌟 2. 強制拔除按鈕的預設彈窗行為，解決「提問時亂跳神諭」的 Bug
     drawLotBtn.removeAttribute('data-bs-toggle');
     drawLotBtn.removeAttribute('data-bs-target');
 
@@ -49,12 +48,13 @@ document.addEventListener('DOMContentLoaded', () => {
     loginBtn.onclick = () => window.signInWithPopup(auth, new window.GoogleAuthProvider());
     logoutBtn.onclick = () => window.signOut(auth);
 
-    async function getAIInterpretation(question, cardName, position, musicGenre) {
+    // 🌟 告訴後端現在是 isDaily 還是問問題
+    async function getAIInterpretation(question, cardName, position, musicGenre, isDaily) {
         try {
             const response = await fetch('/api/oracle', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ question, cardName, position, musicGenre })
+                body: JSON.stringify({ question, cardName, position, musicGenre, isDaily })
             });
             const data = await response.json();
             if (data.error) throw new Error(data.error);
@@ -78,18 +78,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const c = tarotCards[Math.floor(Math.random() * tarotCards.length)];
         const isReversed = Math.random() < 0.5;
         const pos = isReversed ? "逆位" : "正位";
-        const currentGenre = genreInput.value.trim();
+        const currentGenre = isDaily ? genreInput.value.trim() : "";
 
-        modalTitle.innerText = isDaily ? "🔮 每日神諭讀取中..." : `💬 正在為妳解答...`;
+        modalTitle.innerText = isDaily ? "🔮 每日神諭讀取中..." : `💬 正在運算解答...`;
         modalBody.innerHTML = `<div class="spinner-border text-info my-4"></div>`;
 
-        let aiText = await getAIInterpretation(q || "今日運勢", c.name, pos, currentGenre);
+        // 傳送 isDaily 給後端
+        let aiText = await getAIInterpretation(q || "今日運勢", c.name, pos, currentGenre, isDaily);
 
-        // 🌟 3. 解析 AI 回傳的各項資料 (解牌、歌曲、幸運物、幸運色)
         let readingText = aiText;
         let songStr = "", luckyItem = "", luckyColor = "";
 
-        if (aiText.includes("|")) {
+        if (isDaily && aiText.includes("|")) {
             const parts = aiText.split("|");
             readingText = parts[0].trim().replace(/\n/g, '<br>');
             parts.forEach(p => {
@@ -103,8 +103,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let extraHtml = "";
 
-        // 只要 AI 有產出幸運物，就顯示出來 (不限於每日運勢)
-        if (luckyItem || luckyColor) {
+        // 只有每日運勢才會產生這些額外 HTML
+        if (isDaily && (luckyItem || luckyColor)) {
             extraHtml += `
                 <div class="mt-4 p-2 rounded" style="background: rgba(255,255,255,0.05); border: 1px dashed var(--accent-color);">
                     <div class="row g-2 small text-center align-items-center">
@@ -114,20 +114,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>`;
         }
 
-        if (songStr) {
+        if (isDaily && songStr) {
             const ytLink = `https://www.youtube.com/results?search_query=${encodeURIComponent(songStr)}`;
             extraHtml += `
                 <div class="mt-3 text-center">
                     <a href="${ytLink}" target="_blank" class="btn btn-sm btn-info rounded-pill shadow">▶️ 去 YouTube 聽：${songStr}</a>
                 </div>`;
         }
-
-        // 🌟 4. 把被覆蓋掉的下載按鈕重新加回畫面底部！
-        extraHtml += `
-            <div class="mt-4 text-center border-top border-secondary pt-3">
-                <button id="download-result-btn" class="btn btn-sm btn-outline-secondary rounded-pill">下載結果 📸</button>
-            </div>
-        `;
 
         if (currentUser && !aiText.includes("❌")) {
             window.addDoc(window.collection(db, "fortuneHistory"), {
@@ -138,35 +131,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
         modalTitle.innerText = isDaily ? "🔮 今日塔羅神諭" : "💬 靈魂診斷結果";
 
-        // 渲染畫面
+        // 🌟 終極修復：把卡片跟文字「分開」，文字就不會被擠壓了！
+        // 🌟 圖片加上 crossorigin="anonymous" 突破截圖限制！
         modalBody.innerHTML = `
-            <div class="card-container mb-3" id="capture-area" style="padding:10px; background:transparent;">
-                <div class="card-inner" id="flip-target">
-                    <div class="card-front"></div>
-                    <div class="card-back"><img src="${c.image}" style="${isReversed ? 'transform:rotate(180deg)' : ''}"></div>
+            <div id="capture-area" class="p-3" style="background: var(--modal-bg); border-radius: 15px;">
+                <div class="card-container mb-3">
+                    <div class="card-inner" id="flip-target">
+                        <div class="card-front"></div>
+                        <div class="card-back">
+                            <img src="${c.image}" style="${isReversed ? 'transform:rotate(180deg)' : ''}" crossorigin="anonymous">
+                        </div>
+                    </div>
                 </div>
-                <h5 class="text-accent mt-3">${c.name} (${pos})</h5>
+                <h5 class="text-accent">${c.name} (${pos})</h5>
                 <div class="p-3 rounded text-start mt-3 shadow-sm" style="background:rgba(88, 166, 255, 0.1); border-left: 4px solid var(--accent-color); font-size: 0.95rem; line-height: 1.6;">
                     ${readingText}
                 </div>
                 ${extraHtml}
             </div>
+            <div class="mt-3 text-center border-top border-secondary pt-3">
+                <button id="download-result-btn" class="btn btn-sm btn-outline-secondary rounded-pill">下載結果 📸</button>
+            </div>
         `;
         setTimeout(() => document.getElementById('flip-target').classList.add('is-flipped'), 100);
 
-        // 🌟 5. 綁定下載按鈕的功能 (使用 html2canvas 截圖)
+        // 🌟 下載截圖功能
         setTimeout(() => {
             const dlBtn = document.getElementById('download-result-btn');
             if (dlBtn) {
                 dlBtn.onclick = () => {
-                    const target = document.querySelector('.modal-content');
+                    const target = document.getElementById('capture-area');
                     if (window.html2canvas) {
                         dlBtn.innerText = "截圖處理中...";
-                        window.html2canvas(target, { backgroundColor: '#161b22', useCORS: true }).then(canvas => {
+                        window.html2canvas(target, {
+                            backgroundColor: '#161b22',
+                            useCORS: true,
+                            allowTaint: true
+                        }).then(canvas => {
                             const link = document.createElement('a');
                             link.download = 'oracle_result.png';
                             link.href = canvas.toDataURL('image/png');
                             link.click();
+                            dlBtn.innerText = "下載結果 📸";
+                        }).catch(err => {
+                            console.error(err);
+                            alert("因瀏覽器圖片安全限制，截圖失敗 😭 建議直接使用手機/電腦內建截圖！");
                             dlBtn.innerText = "下載結果 📸";
                         });
                     } else {
@@ -194,7 +203,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(tempContainer) tempContainer.innerHTML = '';
 
                 if(!isDaily) userQuestionInput.value = '';
-                genreInput.value = '';
             };
             container.appendChild(card);
         }
