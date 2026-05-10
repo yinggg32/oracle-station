@@ -40,7 +40,7 @@ module.exports = async function handler(req, res) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
             body: JSON.stringify({
-                model: 'llama-3.1-70b-versatile',
+                model: 'llama-3.1-8b-instant',
                 messages: [{ role: 'user', content: promptText }],
                 max_tokens: 400,
                 temperature: 0.85
