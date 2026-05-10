@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return data.text;
         } catch (e) {
             console.error("API Error:", e);
-            return "宇宙通訊中斷 ❌ 請確認已在 Vercel 設定正確的 GEMINI_API_KEY 環境變數。";
+            return "宇宙通訊中斷 ❌ 請確認後端設定是否正確。";
         }
     }
 
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ]
     };
 
-    // 5. 渲染牌陣 (包含動畫)
+    // 5. 渲染牌陣 (包含洗牌動畫)
     const renderDeck = () => {
         deckContainer.classList.add('shuffling'); // 加入洗牌動畫
         deckContainer.innerHTML = '';
@@ -125,6 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>`;
         }
 
+        // 成功讀取後，將歷史紀錄寫入 Firebase
         if (currentUser && !aiText.includes("❌")) {
             window.addDoc(window.collection(db, "fortuneHistory"), {
                 uid: currentUser.uid, question: q || "每日運勢", cardName: c.name, position: pos,
@@ -139,10 +140,11 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="p-3 rounded text-start mt-3 small shadow-sm" style="background:rgba(88, 166, 255, 0.1); border-left: 4px solid var(--accent-color);">${aiText}</div>
             ${extraHtml}
         `;
+        // 設定一點點延遲來觸發翻牌動畫
         setTimeout(() => document.getElementById('flip-target').classList.add('is-flipped'), 100);
     };
 
-    // 7. 按鈕事件監聽 (修正了洗牌動畫與連線的衝突)
+    // 7. 按鈕事件監聽 (恢復最直接的呼叫，解決不抽牌的問題)
     drawLotBtn.onclick = () => {
         const q = userQuestionInput.value.trim();
         const zodiacs = ["牡羊","金牛","雙子","巨蟹","獅子","處女","天秤","天蠍","射手","摩羯","水瓶","雙魚"];
@@ -154,20 +156,13 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // 先觸發洗牌動畫，再延遲呼叫 AI
-        modalTitle.innerText = "重新洗牌中...";
-        modalBody.innerHTML = '<div class="text-center my-4"><div class="spinner-border text-warning"></div></div><p class="small text-muted mt-2">宇宙正在為你重組牌陣...</p>';
-        renderDeck();
-
-        // 延遲 1 秒等洗牌動畫跑完，再去呼叫後端 AI
-        setTimeout(() => {
-            processDraw(q, false);
-        }, 1000);
+        // 點擊按鈕後立刻執行抽牌與 AI 解讀
+        processDraw(q, false);
     };
 
     shuffleBtn.onclick = renderDeck;
 
-    // 初始渲染牌陣
+    // 初始載入時渲染牌陣
     renderDeck();
 
     // 8. 歷史紀錄讀取
