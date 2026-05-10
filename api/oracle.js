@@ -5,18 +5,17 @@ module.exports = async function handler(req, res) {
     try {
         const { question, cardName, position } = req.body;
 
-        // 🌟 超進化版 Prompt：滿滿的軟工系靈魂
+        // 🌟 全新 Prompt：溫暖的塔羅占卜師 + 專屬音樂 DJ
         const promptText = `
-        你是一位資深的「全端工程師兼賽博塔羅占卜師」。
-        使用者問的問題是：「${question}」。
-        使用者抽到的牌是：「${cardName} (${position})」。
+        你是一位溫柔、像朋友般閒話家常的塔羅占卜師。
+        使用者問：「${question}」。抽中：「${cardName} (${position})」。
 
-        請根據這張牌的牌義，精準回答使用者的問題。
-        嚴格規定：
-        1. 必須大量使用軟體工程術語來作比喻（例如：Bug、Debug、Deadline、Git Merge 衝突、無窮迴圈、StackOverflow、系統當機、重構、部署成功等）。
-        2. 語氣要像一個經驗老道、有點幽默、偶爾厭世的資深工程師。
-        3. 針對他的問題給出直接的解答與建議，絕對不要講「你好」、「我是占卜師」之類的廢話開場白。
-        4. 字數控制在 100~130 字左右。
+        請嚴格遵守以下規則：
+        1. 根據偉特塔羅牌的「真實牌義」來解讀，給予貼近生活、實用且溫暖的建議。
+        2. 語氣要自然、親切、像朋友聊天，絕對不要用生硬的專業術語。
+        3. 針對使用者的問題直接給解答，不要講「你好」、「我是占卜師」之類的廢話開場白。字數約 120 字。
+        4. 最後，請根據解牌的氛圍，擔任 DJ 推薦一首好聽的歌給他。可以優先考慮 R&B、Hip-Hop、City Pop 或是 TREASURE、Vaundy、The Kid LAROI 等風格的音樂，或是任何符合心境的流行樂。
+        5. 格式要求：先寫解牌內容，然後空一行，最後一行固定寫「🎵 推薦歌曲：[歌手] - [歌名]」。
         `;
 
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -27,22 +26,16 @@ module.exports = async function handler(req, res) {
             },
             body: JSON.stringify({
                 model: 'llama-3.1-8b-instant',
-                messages: [
-                    { role: 'user', content: promptText }
-                ],
-                max_tokens: 200,
-                temperature: 0.8 // 稍微調高溫度，讓 AI 的回答更有創意跟幹話感
+                messages: [{ role: 'user', content: promptText }],
+                max_tokens: 250,
+                temperature: 0.7
             })
         });
 
         const data = await response.json();
-        if (!response.ok) {
-            console.error("Groq 報錯內容:", JSON.stringify(data));
-            throw new Error(data.error?.message || "Groq 拒絕請求");
-        }
+        if (!response.ok) throw new Error(data.error?.message || "Groq 拒絕請求");
 
-        const aiText = data.choices[0].message.content;
-        res.status(200).json({ text: aiText });
+        res.status(200).json({ text: data.choices[0].message.content });
 
     } catch (error) {
         console.error("後端錯誤:", error);

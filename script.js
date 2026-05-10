@@ -44,8 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.error) throw new Error(data.error);
             return data.text;
         } catch (e) {
-            console.error("API Error:", e);
-            return "伺服器無回應 (Error 500) ❌ 請確認後端連線。";
+            return "伺服器無回應 ❌ 請稍後再試。";
         }
     }
 
@@ -61,12 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const luckyStuff = {
         items: ["TRUZ 玩偶", "底片相機", "熱拿鐵", "護唇膏", "降噪耳機"],
-        colors: ["午夜藍", "鼠尾草綠", "神秘紫", "奶茶色", "發光青"],
-        songs: [
-            { name: "Vaundy - 怪獸の花唄", url: "https://www.youtube.com/watch?v=UM9XNwrubcg" },
-            { name: "TREASURE - DARARI", url: "https://www.youtube.com/watch?v=71GqqX2f31A" },
-            { name: "The Kid LAROI - STAY", url: "https://www.youtube.com/watch?v=kTJczUoc26U" }
-        ]
+        colors: ["午夜藍", "鼠尾草綠", "神秘紫", "奶茶色", "發光青"]
     };
 
     const processDraw = async (q = "", isDaily = false) => {
@@ -74,50 +68,46 @@ document.addEventListener('DOMContentLoaded', () => {
         const isReversed = Math.random() < 0.5;
         const pos = isReversed ? "逆位" : "正位";
 
-        // 🌟 介面優化：讀取時區分標題
-        modalTitle.innerText = isDaily ? "🔮 每日神諭讀取中..." : `💬 正在運算：「${q}」...`;
-        modalBody.innerHTML = `<div class="spinner-border text-info my-4"></div><p class="small text-muted mt-2">雲端祕書正在編譯神諭...</p>`;
+        modalTitle.innerText = isDaily ? "🔮 每日神諭讀取中..." : `💬 正在為妳解答...`;
+        modalBody.innerHTML = `<div class="spinner-border text-info my-4"></div>`;
 
-        const aiText = await getAIInterpretation(q || "今日運勢", c.name, pos);
+        let aiText = await getAIInterpretation(q || "今日運勢", c.name, pos);
+
+        // 將 AI 回傳的換行符號轉成 HTML 換行，讓排版更漂亮
+        aiText = aiText.replace(/\n/g, '<br>');
 
         let extraHtml = "";
         let lItem = "", lColor = "";
 
-        // 🌟 介面優化：只有點擊左邊「今日運勢」時，才會出現幸運物跟音樂
+        // 只有每日運勢才顯示幸運物，問問題就保持畫面乾淨
         if (isDaily) {
             lItem = luckyStuff.items[Math.floor(Math.random() * luckyStuff.items.length)];
             lColor = luckyStuff.colors[Math.floor(Math.random() * luckyStuff.colors.length)];
-            const song = luckyStuff.songs[Math.floor(Math.random() * luckyStuff.songs.length)];
             extraHtml = `
-                <div class="mt-4 p-3 rounded" style="background: rgba(255,255,255,0.05); border: 1px dashed var(--accent-color);">
-                    <div class="row g-2 small text-center align-items-center mb-2">
+                <div class="mt-4 p-2 rounded" style="background: rgba(255,255,255,0.05); border: 1px dashed var(--accent-color);">
+                    <div class="row g-2 small text-center align-items-center">
                         <div class="col-6 border-end border-secondary"><strong>幸運物</strong><br>${lItem}</div>
                         <div class="col-6"><strong>幸運色</strong><br>${lColor}</div>
-                    </div>
-                    <div class="border-top border-secondary pt-2 mt-2 text-center">
-                        <div class="small fw-bold mb-1">今日推薦曲</div>
-                        <button onclick="window.open('${song.url}', '_blank')" class="btn btn-sm btn-info rounded-pill shadow">▶️ 去播放</button>
-                        <div class="mt-1 small" style="color: #58a6ff;">${song.name}</div>
                     </div>
                 </div>`;
         }
 
-        // 寫入 Firebase
         if (currentUser && !aiText.includes("❌")) {
             window.addDoc(window.collection(db, "fortuneHistory"), {
                 uid: currentUser.uid, question: q || "每日運勢", cardName: c.name, position: pos,
                 interpretation: aiText, luckyItem: lItem, luckyColor: lColor, timestamp: new Date()
-            }).catch(e => console.error("Firebase 寫入失敗", e));
+            });
         }
 
-        // 🌟 介面優化：結果出來後，更新明確的標題
         modalTitle.innerText = isDaily ? "🔮 今日塔羅神諭" : "💬 靈魂診斷結果";
 
         modalBody.innerHTML = `
             <div class="card-container mb-3"><div class="card-inner" id="flip-target"><div class="card-front"></div>
             <div class="card-back"><img src="${c.image}" style="${isReversed ? 'transform:rotate(180deg)' : ''}"></div></div></div>
             <h5 class="text-accent">${c.name} (${pos})</h5>
-            <div class="p-3 rounded text-start mt-3 small shadow-sm" style="background:rgba(88, 166, 255, 0.1); border-left: 4px solid var(--accent-color);">${aiText}</div>
+            <div class="p-3 rounded text-start mt-3 shadow-sm" style="background:rgba(88, 166, 255, 0.1); border-left: 4px solid var(--accent-color); font-size: 0.95rem; line-height: 1.6;">
+                ${aiText}
+            </div>
             ${extraHtml}
         `;
         setTimeout(() => document.getElementById('flip-target').classList.add('is-flipped'), 100);
@@ -138,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const tempContainer = document.getElementById('temp-deck-container');
                 if(tempContainer) tempContainer.innerHTML = '';
-                if(!isDaily) userQuestionInput.value = ''; // 抽完牌自動清空輸入框
+                if(!isDaily) userQuestionInput.value = '';
             };
             container.appendChild(card);
         }
@@ -151,16 +141,6 @@ document.addEventListener('DOMContentLoaded', () => {
     drawLotBtn.onclick = () => {
         const q = userQuestionInput.value.trim();
         if(!q) { alert("請先輸入妳的困惑..."); return; }
-
-        const zodiacs = ["牡羊","金牛","雙子","巨蟹","獅子","處女","天秤","天蠍","射手","摩羯","水瓶","雙魚"];
-        const matched = zodiacs.filter(z => q.includes(z));
-
-        if (matched.length >= 2) {
-            modalTitle.innerText = "❤️ 星象診斷";
-            modalBody.innerHTML = `<h1 class="display-1 text-info">${80 + (q.length % 20)}%</h1><p>宇宙覺得妳們簡直是 Bug 與 Fix 般的絕配！</p>`;
-            new window.bootstrap.Modal(document.getElementById('resultModal')).show();
-            return;
-        }
 
         let tempContainer = document.getElementById('temp-deck-container');
         if (!tempContainer) {
