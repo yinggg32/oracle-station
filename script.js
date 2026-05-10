@@ -1,11 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 預載截圖工具
-    if (!window.html2canvas) {
-        const script = document.createElement('script');
-        script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
-        document.head.appendChild(script);
-    }
-
     const themeToggleBtn = document.getElementById('theme-toggle');
     const drawLotBtn = document.getElementById('draw-lot-btn');
     const shuffleBtn = document.getElementById('shuffle-btn');
@@ -19,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const userNameDisplay = document.getElementById('user-name');
     const historyBtn = document.getElementById('history-btn');
     const historyBody = document.getElementById('history-modal-body');
+    const downloadBtn = document.getElementById('download-btn'); // 綁定 HTML 裡的下載按鈕
 
     // 移除不必要的彈窗觸發，改由 JS 控制
     drawLotBtn.removeAttribute('data-bs-toggle');
@@ -65,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 🌟 滿血復活！完整的 22 張大阿爾克那塔羅牌
+    // 滿血復活！完整的 22 張大阿爾克那塔羅牌
     const tarotCards = [
         { name: "0. 愚者 (The Fool)", image: "https://upload.wikimedia.org/wikipedia/commons/9/90/RWS_Tarot_00_Fool.jpg" },
         { name: "1. 魔術師 (The Magician)", image: "https://upload.wikimedia.org/wikipedia/commons/d/de/RWS_Tarot_01_Magician.jpg" },
@@ -100,16 +94,19 @@ document.addEventListener('DOMContentLoaded', () => {
         modalTitle.innerText = isDaily ? "🔮 每日神諭讀取中..." : `💬 正在編譯解答...`;
         modalBody.innerHTML = `<div class="text-center my-4"><div class="spinner-border text-info"></div><p class="mt-2 text-muted">正在與宇宙進行連線...</p></div>`;
 
-        // 🌟 手動喚出視窗，確保不會跟舊設定打架
-        const resultModal = new window.bootstrap.Modal(document.getElementById('resultModal'));
+        // 🌟 修正：使用 getOrCreateInstance 防止 Modal 彈窗背景卡住變黑
+        const resultModal = window.bootstrap.Modal.getOrCreateInstance(document.getElementById('resultModal'));
         resultModal.show();
+
+        // 確保下載按鈕在載入時隱藏，解析完再出現
+        if (downloadBtn) downloadBtn.style.display = 'none';
 
         let aiText = await getAIInterpretation(q || "今日運勢", c.name, pos, currentGenre, isDaily);
 
         let readingText = aiText;
         let songStr = "", luckyItem = "", luckyColor = "";
 
-        // 🌟 防彈版 Regex 解析，保證文字不擠壓
+        // 防彈版 Regex 解析
         if (isDaily) {
             const songMatch = aiText.match(/🎵\s*推薦歌曲[：:]\s*(.+)/);
             const itemMatch = aiText.match(/🍀\s*幸運物[：:]\s*(.+)/);
@@ -142,9 +139,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (isDaily && songStr) {
             const ytLink = `https://www.youtube.com/results?search_query=${encodeURIComponent(songStr)}`;
+            // 加上 data-html2canvas-ignore，讓這個按鈕不會出現在下載的照片裡
             extraHtml += `
-                <div class="mt-3 text-center">
-                    <a href="${ytLink}" target="_blank" class="btn btn-sm btn-info rounded-pill px-4" style="text-decoration:none;">▶️ 去 YouTube 搜尋：${songStr}</a>
+                <div class="mt-3 text-center" data-html2canvas-ignore="true">
+                    <a href="${ytLink}" target="_blank" class="btn btn-sm btn-outline-info rounded-pill px-4" style="text-decoration:none;">▶️ YouTube 搜尋：${songStr}</a>
                 </div>`;
         }
 
@@ -157,50 +155,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
         modalTitle.innerText = isDaily ? "🔮 今日塔羅神諭" : "💬 靈魂診斷結果";
 
+        // 🌟 這裡只塞內容，不再重新建立 capture-area，完美結合 HTML
         modalBody.innerHTML = `
-            <div id="capture-area" class="p-3" style="background: var(--modal-bg); width: 100%; border-radius: 12px;">
-                <div class="card-container mb-3 mx-auto">
-                    <div class="card-inner" id="flip-target">
-                        <div class="card-front"></div>
-                        <div class="card-back">
-                            <img src="${c.image}" style="${isReversed ? 'transform:rotate(180deg)' : ''}" crossorigin="anonymous">
-                        </div>
+            <div class="card-container mb-3 mx-auto">
+                <div class="card-inner" id="flip-target">
+                    <div class="card-front"></div>
+                    <div class="card-back">
+                        <img src="${c.image}" style="${isReversed ? 'transform:rotate(180deg)' : ''}" crossorigin="anonymous">
                     </div>
                 </div>
-                <h5 class="text-accent text-center mt-3">${c.name} (${pos})</h5>
-                <div class="p-3 rounded text-start mt-3 shadow-sm" style="background:rgba(88, 166, 255, 0.1); border-left: 4px solid var(--accent-color); line-height: 1.6; word-break: break-all;">
-                    ${readingText}
-                </div>
-                ${extraHtml}
             </div>
-            <div class="mt-4 text-center border-top border-secondary pt-3">
-                <button id="real-download-btn" class="btn btn-sm btn-outline-secondary rounded-pill px-4">下載結果 📸</button>
+            <h5 class="text-accent text-center mt-3">${c.name} (${pos})</h5>
+            <div class="p-3 rounded text-start mt-3 shadow-sm" style="background:rgba(88, 166, 255, 0.1); border-left: 4px solid var(--accent-color); line-height: 1.6; word-break: break-all;">
+                ${readingText}
             </div>
+            ${extraHtml}
         `;
 
         setTimeout(() => document.getElementById('flip-target').classList.add('is-flipped'), 100);
 
-        // 🌟 下載截圖功能
-        setTimeout(() => {
-            const btn = document.getElementById('real-download-btn');
-            if (btn) {
-                btn.onclick = () => {
-                    const target = document.getElementById('capture-area');
-                    btn.innerText = "截圖處理中...";
-                    window.html2canvas(target, { backgroundColor: '#161b22', useCORS: true, allowTaint: true }).then(canvas => {
-                        const link = document.createElement('a');
-                        link.download = `Oracle_${Date.now()}.png`;
-                        link.href = canvas.toDataURL();
-                        link.click();
-                        btn.innerText = "下載結果 📸";
-                    }).catch(err => {
-                        console.error(err);
-                        alert("截圖遭瀏覽器跨域阻擋，請直接使用手機截圖！");
-                        btn.innerText = "下載結果 📸";
-                    });
-                };
-            }
-        }, 500);
+        // 解析完畢，顯示拍照按鈕
+        if (downloadBtn) downloadBtn.style.display = 'block';
     };
 
     const renderDeck = (container, isDaily) => {
@@ -263,4 +238,30 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.toggle('light-theme');
         themeToggleBtn.innerText = document.body.classList.contains('light-theme') ? '切換深色星空 🌙' : '切換明亮晨光 ☀️';
     };
+
+    // === 📸 拍立得沖洗功能 (結合 HTML 的按鈕) ===
+    if (downloadBtn) {
+        downloadBtn.onclick = () => {
+            const captureArea = document.getElementById('capture-area');
+            const originalText = downloadBtn.innerText;
+            downloadBtn.innerText = "🌌 宇宙顯影中，請稍候...";
+
+            html2canvas(captureArea, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: document.body.classList.contains('light-theme') ? '#fdfdfd' : '#0d1117'
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `OracleStation_命運拍立得_${Date.now()}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                downloadBtn.innerText = originalText;
+            }).catch(err => {
+                console.error("沖洗失敗:", err);
+                alert("截圖遭瀏覽器跨域阻擋，請直接使用手機截圖！");
+                downloadBtn.innerText = originalText;
+            });
+        };
+    }
 });
