@@ -9,15 +9,16 @@ module.exports = async function handler(req, res) {
 
         if (isDaily) {
             const genreText = musicGenre
-                ? `想聽「${musicGenre}」曲風，請推薦一首【真實存在】的歌。`
-                : `自由推薦一首真實存在的流行好歌。`;
+                ? `想聽「${musicGenre}」曲風，請推薦一首【真實存在、在 Spotify 上能找到】的知名歌曲。`
+                : `請推薦一首【真實存在且知名】的流行好歌（例如 R&B, Hip-Hop, City Pop, K-pop，或者像是 Mac Miller, Post Malone, Joji, TREASURE, Vaundy, Drake 等真實歌手的熱門歌曲）。`;
 
             formatInstruction = `
             【嚴格格式要求】
-            請你「必須」完全依照下方的範本輸出，絕對不可以增加「好的」、「以下是」等開場白，也不要使用任何 Markdown 粗體星號！
+            請你「必須」完全依照下方的範本輸出，絕對不可以增加開場白。
+            ⚠️ 警告：「推薦歌曲」必須是地球上真實存在的流行音樂，絕對禁止捏造不存在的歌名，也不准把中國古詩當作歌名！
 
             (在這裡寫出你的具體解牌與行動建議，大約100字)
-            🎵 推薦歌曲：歌手 - 歌名
+            🎵 推薦歌曲：真實歌手 - 真實歌名
             🍀 幸運物：具體物品
             ✨ 幸運色：顏色
             `;
@@ -41,10 +42,10 @@ module.exports = async function handler(req, res) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
             body: JSON.stringify({
-                model: 'llama-3.1-8b-instant', // 保持穩定不當機的小模型
+                model: 'llama-3.1-8b-instant',
                 messages: [{ role: 'user', content: promptText }],
                 max_tokens: 300,
-                temperature: 0.6 // 稍微調低溫度，讓它乖乖聽話照格式走
+                temperature: 0.5 // 稍微降溫，鎖住它的幻覺，不讓它再通靈發明歌曲
             })
         });
 

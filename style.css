@@ -62,27 +62,40 @@ body { background-color: var(--bg-color); color: var(--text-color); font-family:
     color: #ffffff !important; /* 解牌文字強制純白 */
     font-weight: 500; /* 讓字體稍微變粗一點點，更好讀 */
 }
-/* ☀️ 淺色模式 (明亮晨光) 專屬文字顏色拯救計畫 */
-
-/* 當 body 沒有 dark-theme 類別時（也就是淺色模式），強制替換文字顏色 */
-body:not(.dark-theme) .mystical-card,
-body:not(.dark-theme) .p-3 {
-    color: #2c3e50 !important; /* 把卡片內文改成深藏青/深灰色，清晰易讀 */
+/* ☀️ 淺色模式 (明亮晨光) 文字強制顯靈計畫 */
+body:not(.dark-theme) {
+    background-color: #fdfaf5 !important; /* 稍微暖一點的白，保護眼睛 */
+    color: #222222 !important; /* 主文字強制深黑灰色 */
 }
 
-body:not(.dark-theme) .text-accent {
-    color: #b8860b !important; /* 標題改成較深的暗金色 (DarkGoldenRod)，既神祕又清楚 */
-    font-weight: bold !important;
+/* 針對 Modal 彈窗內的字體加深 */
+body:not(.dark-theme) .modal-content {
+    background-color: #ffffff !important;
 }
 
-body:not(.dark-theme) .text-muted {
-    color: #7f8c8d !important; /* 次要文字 (例如：從下方牌陣中選取...) 改為深灰色 */
+body:not(.dark-theme) #modal-body,
+body:not(.dark-theme) .p-3,
+body:not(.dark-theme) .text-accent,
+body:not(.dark-theme) .text-muted,
+body:not(.dark-theme) strong,
+body:not(.dark-theme) span {
+    color: #1a1a1a !important; /* 強制所有文字變成深黑色 */
+    opacity: 1 !important;     /* 確保透明度是 100% */
 }
 
-body:not(.dark-theme) .mystical-input {
-    color: #2c3e50 !important; /* 讓輸入框打出來的字也是深色 */
+/* 針對幸運三寶的框框加強 */
+body:not(.dark-theme) .mt-4.p-3.rounded {
+    background: rgba(0, 0, 0, 0.05) !important; /* 淡淡的灰色背景，讓字體更突出 */
+    border: 1px solid #cccccc !important;
 }
 
-body:not(.dark-theme) .mystical-input::placeholder {
-    color: #95a5a6 !important; /* 讓輸入框的提示字 (例如：晚餐吃什麼) 變成明顯的灰色 */
+/* 幸運物與幸運色的文字 */
+body:not(.dark-theme) .col-6 {
+    color: #333333 !important;
+}
+
+/* 解牌文字框的背景與邊框 */
+body:not(.dark-theme) .p-3.rounded.text-start {
+    background: rgba(184, 134, 11, 0.1) !important;
+    border-left: 4px solid #b8860b !important;
 }
