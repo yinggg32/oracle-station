@@ -10,11 +10,12 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="dark-theme">
-    <div class="noise-overlay"></div>
+    <div class="noise-overlay" style="pointer-events: none;"></div>
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-transparent pt-3 px-4">
         <div class="container-fluid">
             <button id="theme-toggle" class="btn btn-outline-secondary rounded-pill btn-sm">切換明亮晨光 ☀️</button>
+
             <div class="d-flex align-items-center ms-auto">
                 <button id="login-btn" class="btn btn-mystical btn-sm">登入解鎖運勢紀錄 🔮</button>
                 <div id="user-profile" class="d-none d-flex align-items-center">
@@ -37,7 +38,9 @@
                 <div class="mystical-card p-4 text-center h-100 shadow">
                     <h4 class="mb-3 text-accent">今日塔羅神諭</h4>
                     <p class="small text-muted mb-4">從下方牌陣中選取一張感應卡牌</p>
+
                     <button id="shuffle-btn" class="btn btn-sm btn-outline-secondary rounded-pill mb-4">重新洗牌 🔀</button>
+
                     <div id="tarot-deck-container" class="tarot-deck"></div>
                 </div>
             </div>
@@ -46,7 +49,9 @@
                 <div class="mystical-card p-4 text-center h-100 shadow">
                     <h4 class="mb-3 text-accent">AI 靈魂診斷</h4>
                     <p class="small text-muted mb-4">心中默念問題，讓宇宙為你解答</p>
+
                     <input type="text" id="user-question" class="form-control mystical-input mb-4 py-2" placeholder="例如：期中專題會過嗎？晚餐吃什麼？">
+
                     <button id="draw-lot-btn" class="btn btn-mystical w-100">連結宇宙運算 ✨</button>
                 </div>
             </div>
@@ -83,11 +88,13 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
     <script>
+        // 妳專屬的 Firebase 金鑰
         const firebaseConfig = {
             apiKey: "AIzaSyCmXEqjjpvPMvb3ms3xEKiV9bVd5bgCzUg",
             authDomain: "oracle-station-a187f.firebaseapp.com",
@@ -101,6 +108,7 @@
         window.firebaseDb = firebase.firestore();
         window.firebaseAuth = firebase.auth();
 
+        // 橋接函數 (給 script.js 用)
         window.collection = (db, name) => db.collection(name);
         window.addDoc = (col, data) => col.add(data);
         window.query = (col, ...args) => {
@@ -113,7 +121,11 @@
         window.signInWithPopup = (auth, provider) => auth.signInWithPopup(provider);
         window.signOut = (auth) => auth.signOut();
         window.GoogleAuthProvider = firebase.auth.GoogleAuthProvider;
+
+        // 🌟 修復 2：補上這條致命的連線，讓網頁不再死當！
+        window.onAuthStateChanged = (auth, cb) => auth.onAuthStateChanged(cb);
     </script>
+
     <script src="script.js"></script>
 </body>
 </html>
