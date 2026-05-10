@@ -1,4 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // 🌟 1. 自動載入截圖工具 (html2canvas) 以修復下載功能
+    if (!window.html2canvas) {
+        const script = document.createElement('script');
+        script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+        document.head.appendChild(script);
+    }
+
     const themeToggleBtn = document.getElementById('theme-toggle');
     const drawLotBtn = document.getElementById('draw-lot-btn');
     const shuffleBtn = document.getElementById('shuffle-btn');
@@ -13,9 +20,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const historyBtn = document.getElementById('history-btn');
     const historyBody = document.getElementById('history-modal-body');
 
-    // 🌟 動態產生「音樂曲風」輸入框
+    // 🌟 2. 強制拔除按鈕的預設彈窗行為，解決「提問時亂跳神諭」的 Bug
+    drawLotBtn.removeAttribute('data-bs-toggle');
+    drawLotBtn.removeAttribute('data-bs-target');
+
     if (!document.getElementById('music-genre-input')) {
-        userQuestionInput.insertAdjacentHTML('afterend', '<input type="text" id="music-genre-input" class="form-control mystical-input mt-2 mb-3" placeholder="🎵 想聽什麼曲風？(如: City Pop, Kpop, R&B... 選填)">');
+        deckContainer.insertAdjacentHTML('beforebegin', '<div class="d-flex justify-content-center"><input type="text" id="music-genre-input" class="form-control mystical-input mt-3 mb-2" style="max-width: 250px;" placeholder="🎵 想聽什麼曲風？(選填)"></div>');
     }
     const genreInput = document.getElementById('music-genre-input');
 
@@ -39,7 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loginBtn.onclick = () => window.signInWithPopup(auth, new window.GoogleAuthProvider());
     logoutBtn.onclick = () => window.signOut(auth);
 
-    // 🌟 傳遞新的 musicGenre 參數給後端
     async function getAIInterpretation(question, cardName, position, musicGenre) {
         try {
             const response = await fetch('/api/oracle', {
@@ -65,46 +74,42 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "21. 世界", image: "https://upload.wikimedia.org/wikipedia/commons/f/ff/RWS_Tarot_21_World.jpg" }
     ];
 
-    const luckyStuff = {
-        items: ["底片相機", "熱拿鐵", "護唇膏", "降噪耳機", "雙眼皮貼"],
-        colors: ["午夜藍", "鼠尾草綠", "神秘紫", "酒紅色", "發光青"]
-    };
-
     const processDraw = async (q = "", isDaily = false) => {
         const c = tarotCards[Math.floor(Math.random() * tarotCards.length)];
         const isReversed = Math.random() < 0.5;
         const pos = isReversed ? "逆位" : "正位";
-
-        // 讀取使用者填寫的曲風 (每日運勢因為沒有填表，所以放空)
-        const currentGenre = isDaily ? "" : genreInput.value.trim();
+        const currentGenre = genreInput.value.trim();
 
         modalTitle.innerText = isDaily ? "🔮 每日神諭讀取中..." : `💬 正在為妳解答...`;
         modalBody.innerHTML = `<div class="spinner-border text-info my-4"></div>`;
 
-        // 🌟 把曲風變數傳給後端
         let aiText = await getAIInterpretation(q || "今日運勢", c.name, pos, currentGenre);
 
+        // 🌟 3. 解析 AI 回傳的各項資料 (解牌、歌曲、幸運物、幸運色)
         let readingText = aiText;
-        let songStr = "";
-        if (aiText.includes("🎵 推薦歌曲：")) {
-            const parts = aiText.split("🎵 推薦歌曲：");
+        let songStr = "", luckyItem = "", luckyColor = "";
+
+        if (aiText.includes("|")) {
+            const parts = aiText.split("|");
             readingText = parts[0].trim().replace(/\n/g, '<br>');
-            songStr = parts[1].trim().replace(/\*/g, '');
+            parts.forEach(p => {
+                if (p.includes("🎵 推薦歌曲：")) songStr = p.replace("🎵 推薦歌曲：", "").replace(/\*/g, '').trim();
+                if (p.includes("🍀 幸運物：")) luckyItem = p.replace("🍀 幸運物：", "").replace(/\*/g, '').trim();
+                if (p.includes("✨ 幸運色：")) luckyColor = p.replace("✨ 幸運色：", "").replace(/\*/g, '').trim();
+            });
         } else {
-            readingText = readingText.replace(/\n/g, '<br>');
+            readingText = aiText.replace(/\n/g, '<br>');
         }
 
         let extraHtml = "";
-        let lItem = "", lColor = "";
 
-        if (isDaily) {
-            lItem = luckyStuff.items[Math.floor(Math.random() * luckyStuff.items.length)];
-            lColor = luckyStuff.colors[Math.floor(Math.random() * luckyStuff.colors.length)];
+        // 只要 AI 有產出幸運物，就顯示出來 (不限於每日運勢)
+        if (luckyItem || luckyColor) {
             extraHtml += `
                 <div class="mt-4 p-2 rounded" style="background: rgba(255,255,255,0.05); border: 1px dashed var(--accent-color);">
                     <div class="row g-2 small text-center align-items-center">
-                        <div class="col-6 border-end border-secondary"><strong>幸運物</strong><br>${lItem}</div>
-                        <div class="col-6"><strong>幸運色</strong><br>${lColor}</div>
+                        <div class="col-6 border-end border-secondary"><strong>🍀 幸運物</strong><br>${luckyItem || '無'}</div>
+                        <div class="col-6"><strong>✨ 幸運色</strong><br>${luckyColor || '無'}</div>
                     </div>
                 </div>`;
         }
@@ -117,25 +122,59 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>`;
         }
 
+        // 🌟 4. 把被覆蓋掉的下載按鈕重新加回畫面底部！
+        extraHtml += `
+            <div class="mt-4 text-center border-top border-secondary pt-3">
+                <button id="download-result-btn" class="btn btn-sm btn-outline-secondary rounded-pill">下載結果 📸</button>
+            </div>
+        `;
+
         if (currentUser && !aiText.includes("❌")) {
             window.addDoc(window.collection(db, "fortuneHistory"), {
                 uid: currentUser.uid, question: q || "每日運勢", cardName: c.name, position: pos,
-                interpretation: aiText, timestamp: new Date()
+                interpretation: readingText, timestamp: new Date()
             }).catch(e => console.error("Firebase 寫入失敗", e));
         }
 
         modalTitle.innerText = isDaily ? "🔮 今日塔羅神諭" : "💬 靈魂診斷結果";
 
+        // 渲染畫面
         modalBody.innerHTML = `
-            <div class="card-container mb-3"><div class="card-inner" id="flip-target"><div class="card-front"></div>
-            <div class="card-back"><img src="${c.image}" style="${isReversed ? 'transform:rotate(180deg)' : ''}"></div></div></div>
-            <h5 class="text-accent">${c.name} (${pos})</h5>
-            <div class="p-3 rounded text-start mt-3 shadow-sm" style="background:rgba(88, 166, 255, 0.1); border-left: 4px solid var(--accent-color); font-size: 0.95rem; line-height: 1.6;">
-                ${readingText}
+            <div class="card-container mb-3" id="capture-area" style="padding:10px; background:transparent;">
+                <div class="card-inner" id="flip-target">
+                    <div class="card-front"></div>
+                    <div class="card-back"><img src="${c.image}" style="${isReversed ? 'transform:rotate(180deg)' : ''}"></div>
+                </div>
+                <h5 class="text-accent mt-3">${c.name} (${pos})</h5>
+                <div class="p-3 rounded text-start mt-3 shadow-sm" style="background:rgba(88, 166, 255, 0.1); border-left: 4px solid var(--accent-color); font-size: 0.95rem; line-height: 1.6;">
+                    ${readingText}
+                </div>
+                ${extraHtml}
             </div>
-            ${extraHtml}
         `;
         setTimeout(() => document.getElementById('flip-target').classList.add('is-flipped'), 100);
+
+        // 🌟 5. 綁定下載按鈕的功能 (使用 html2canvas 截圖)
+        setTimeout(() => {
+            const dlBtn = document.getElementById('download-result-btn');
+            if (dlBtn) {
+                dlBtn.onclick = () => {
+                    const target = document.querySelector('.modal-content');
+                    if (window.html2canvas) {
+                        dlBtn.innerText = "截圖處理中...";
+                        window.html2canvas(target, { backgroundColor: '#161b22', useCORS: true }).then(canvas => {
+                            const link = document.createElement('a');
+                            link.download = 'oracle_result.png';
+                            link.href = canvas.toDataURL('image/png');
+                            link.click();
+                            dlBtn.innerText = "下載結果 📸";
+                        });
+                    } else {
+                        alert("截圖套件載入中，請稍等幾秒後再試！");
+                    }
+                };
+            }
+        }, 500);
     };
 
     const renderDeck = (container, isDaily) => {
@@ -154,11 +193,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const tempContainer = document.getElementById('temp-deck-container');
                 if(tempContainer) tempContainer.innerHTML = '';
 
-                // 🌟 抽完牌後，自動清空問題與曲風，準備下一次發問
-                if(!isDaily) {
-                    userQuestionInput.value = '';
-                    genreInput.value = '';
-                }
+                if(!isDaily) userQuestionInput.value = '';
+                genreInput.value = '';
             };
             container.appendChild(card);
         }
