@@ -46,26 +46,52 @@ document.addEventListener('DOMContentLoaded', () => {
     loginBtn.onclick = () => window.signInWithPopup(auth, new window.GoogleAuthProvider());
     logoutBtn.onclick = () => window.signOut(auth);
 
-    // === 👑 站長專屬後門與每日限制設定 ===
+    // === 👑 站長專屬後門與午夜重置額度系統 ===
     const ADMIN_EMAIL = "sophiayeh2394www@gmail.com";
-    const DAILY_COOLDOWN = 24 * 60 * 60 * 1000; // 24 小時的毫秒數
 
-    function checkCanDraw() {
+    function checkDrawLimit(isDaily) {
         // 1. 如果是站長登入，直接開啟無敵模式！
         if (currentUser && currentUser.email === ADMIN_EMAIL) {
-            console.log("👑 站長後門已啟動：無視冷卻時間");
+            console.log("👑 站長後門已啟動：無視任何限制");
             return { allowed: true };
         }
 
-        // 2. 一般使用者的冷卻檢查 (使用 localStorage)
-        const lastDraw = localStorage.getItem('lastTarotDraw');
-        const now = Date.now();
-        if (lastDraw && (now - lastDraw < DAILY_COOLDOWN)) {
-            const remainingMs = DAILY_COOLDOWN - (now - lastDraw);
-            return { allowed: false, remaining: remainingMs };
+        // 2. 獲取今天當地日期的字串 (例如："2026/5/10")
+        const today = new Date().toLocaleDateString();
+
+        // 3. 讀取瀏覽器紀錄
+        let usageData = JSON.parse(localStorage.getItem('oracleUsage')) || {};
+
+        // 4. 午夜灰姑娘機制：如果紀錄的日期不是今天，代表跨過了半夜 12 點，額度全滿！
+        if (usageData.date !== today) {
+            usageData = { date: today, dailyCount: 0, customCount: 0 };
         }
 
-        return { allowed: true };
+        // 5. 判斷額度 (左側 1 次，右側 3 次)
+        if (isDaily) {
+            if (usageData.dailyCount >= 1) {
+                return { allowed: false, message: "⏳ 【今日塔羅神諭】每日限抽 1 次。\n請等待今晚 12 點過後，宇宙能量重置。" };
+            }
+        } else {
+            if (usageData.customCount >= 3) {
+                return { allowed: false, message: "⏳ 【AI 靈魂診斷】每日 3 次額度已用盡。\n請等待今晚 12 點過後，宇宙能量重置。" };
+            }
+        }
+
+        return { allowed: true, usageData: usageData }; // 將目前的數據傳出去，抽完牌再扣額度
+    }
+
+    function commitDrawUsage(isDaily, usageData) {
+        // 站長不用扣額度
+        if (currentUser && currentUser.email === ADMIN_EMAIL) return;
+
+        // 依照抽的區域扣除額度並存檔
+        if (isDaily) {
+            usageData.dailyCount += 1;
+        } else {
+            usageData.customCount += 1;
+        }
+        localStorage.setItem('oracleUsage', JSON.stringify(usageData));
     }
 
     // === API 呼叫功能 ===
@@ -206,17 +232,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = document.createElement('div');
             card.className = 'deck-card';
             card.onclick = () => {
-                // 🌟 抽牌前檢查權限！
-                const limit = checkCanDraw();
+                // 🌟 抽牌前檢查權限！(傳入 isDaily 判斷是左邊還右邊)
+                const limit = checkDrawLimit(isDaily);
                 if (!limit.allowed) {
-                    const hours = Math.floor(limit.remaining / (1000 * 60 * 60));
-                    const minutes = Math.floor((limit.remaining % (1000 * 60 * 60)) / (1000 * 60));
-                    alert(`⏳ 靈魂需要休息...\n宇宙能量冷卻中，請於 ${hours} 小時 ${minutes} 分鐘後再嘗試連線。`);
+                    alert(limit.message); // 跳出額度用盡的警告
                     return;
                 }
 
-                // 通過檢查，記錄這次抽牌的時間
-                localStorage.setItem('lastTarotDraw', Date.now());
+                // 🌟 通過檢查，將次數 +1 並存檔！
+                commitDrawUsage(isDaily, limit.usageData);
 
                 const q = isDaily ? "" : userQuestionInput.value.trim();
                 processDraw(q, isDaily);
@@ -229,11 +253,11 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => container.classList.remove('shuffling'), 800);
     };
 
-    // 初始化左側牌陣
+    // 初始化左側牌陣 (isDaily = true)
     renderDeck(deckContainer, true);
     shuffleBtn.onclick = (e) => { e.preventDefault(); renderDeck(deckContainer, true); };
 
-    // 右側抽牌按鈕
+    // 右側抽牌按鈕 (產生出 isDaily = false 的牌陣)
     drawLotBtn.onclick = (e) => {
         e.preventDefault();
         const q = userQuestionInput.value.trim();
