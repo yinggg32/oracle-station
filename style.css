@@ -1,125 +1,39 @@
-/* --- 1. 核心配色：妳最愛的深藍星空感 --- */
+/* --- 1. 核心變數設定 (完全保留妳的配色與比例) --- */
 :root {
-    --bg-dark: #0d1117;       /* 深海藍背景 */
-    --text-blue: #58a6ff;     /* 妳要的藍色字 (亮青藍) */
-    --text-muted: #8b949e;    /* 次要灰色 */
-    --accent-gold: #b8860b;   /* 高級暗金色 */
-    --card-bg: #161b22;       /* 卡片深藍黑 */
+    --bg-color: #0d1117;
+    --text-color: #e6edf3;
+    --card-bg: rgba(30, 41, 59, 0.7);
+    --accent-color: #58a6ff;
+    --glow-color: rgba(88, 166, 255, 0.5);
+    --input-bg: rgba(13, 17, 23, 0.8);
+    --modal-bg: #161b22;
+    --border-color: rgba(255, 255, 255, 0.1);
+    --btn-close-filter: invert(1);
+    --muted-text: #a3b3c4;
 }
 
-/* --- 2. 全域基礎設定 --- */
+/* 🌟 淺色模式 (自動適應妳提供的配色) */
+body.light-theme {
+    --bg-color: #fcfaf2;
+    --text-color: #3e3e3e;
+    --card-bg: rgba(255, 255, 255, 0.8);
+    --accent-color: #b08d57;
+    --glow-color: rgba(176, 141, 87, 0.3);
+    --input-bg: rgba(255, 255, 255, 0.8);
+    --modal-bg: #fdfdfd;
+    --border-color: rgba(176, 141, 87, 0.3);
+    --btn-close-filter: invert(0);
+    --muted-text: #6c757d;
+}
+
+/* --- 2. 基礎樣式 --- */
 body {
-    background-color: var(--bg-dark);
-    color: var(--text-blue); /* 預設就是藍色字！ */
+    background-color: var(--bg-color) !important;
+    color: var(--text-color) !important;
     font-family: 'Noto Serif TC', serif;
-    transition: all 0.3s ease;
+    transition: 0.4s;
     min-height: 100vh;
     margin: 0;
-}
-
-/* 🌟 淺色模式顯靈計畫 (只在 light-theme 時切換) */
-body.light-theme {
-    background-color: #fdfaf5 !important;
-    color: #1a1a1a !important; /* 淺色時字變黑 */
-}
-
-body.light-theme p,
-body.light-theme span,
-body.light-theme div,
-body.light-theme .modal-body {
-    color: #1a1a1a !important;
-}
-
-/* --- 3. 妳最愛的標題與文字顏色 --- */
-h1, h4, .mystical-title, .text-accent {
-    color: var(--accent-gold) !important;
-    font-weight: bold;
-}
-
-.text-muted {
-    color: var(--text-muted) !important;
-}
-
-/* --- 4. 復原：精緻小巧的塔羅牌尺寸 (80x120) --- */
-.tarot-deck {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 15px;
-    padding: 20px;
-}
-
-.deck-card, .card-container {
-    width: 80px !important;  /* 鎖定精緻小尺寸 */
-    height: 120px !important;
-    cursor: pointer;
-    position: relative;
-    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.deck-card {
-    background: linear-gradient(135deg, #161b22, #0d1117);
-    border: 2px solid var(--accent-gold);
-    border-radius: 8px;
-}
-
-.deck-card:hover {
-    transform: translateY(-10px) scale(1.1);
-    box-shadow: 0 0 20px var(--text-blue);
-}
-
-/* 翻牌動畫復原 */
-.card-inner {
-    position: relative; width: 100%; height: 100%;
-    transition: transform 0.8s; transform-style: preserve-3d;
-}
-.card-inner.is-flipped { transform: rotateY(180deg); }
-.card-front, .card-back {
-    position: absolute; width: 100%; height: 100%;
-    backface-visibility: hidden; border-radius: 8px;
-    border: 2px solid var(--accent-gold); overflow: hidden;
-}
-.card-front { background: var(--card-bg); }
-.card-back { background: white; transform: rotateY(180deg); }
-.card-back img { width: 100%; height: 100%; object-fit: cover; }
-
-/* --- 5. 妳原本超美的卡片樣式 --- */
-.mystical-card {
-    background-color: var(--card-bg);
-    border-radius: 20px;
-    border: 1px solid rgba(128, 128, 128, 0.2);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    padding: 25px;
-    color: var(--text-blue) !important;
-}
-
-/* 彈窗樣式 (藍色字核心) */
-.modal-content {
-    background-color: #0d1117 !important;
-    border: 1px solid var(--accent-gold);
-    color: var(--text-blue) !important;
-    border-radius: 15px;
-}
-
-body.light-theme .modal-content {
-    background-color: #ffffff !important;
-    color: #1a1a1a !important;
-}
-
-/* --- 6. 其他 UI 元件 --- */
-.mystical-input {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--accent-gold);
-    color: var(--text-blue);
-    border-radius: 50px;
-    padding: 10px 20px;
-    width: 100%;
-}
-
-.btn-mystical {
-    background: linear-gradient(45deg, #0969da, #051937);
-    border: none; color: white !important;
-    border-radius: 50px; padding: 10px 25px; font-weight: bold;
 }
 
 .noise-overlay {
@@ -128,9 +42,111 @@ body.light-theme .modal-content {
     opacity: 0.05; pointer-events: none; z-index: 9999;
 }
 
+.mystical-title {
+    color: var(--accent-color) !important;
+    text-shadow: 0 0 20px var(--glow-color);
+}
+
+/* 🌟 修正：確保所有內文、標題都跟著變數走，不准隱形 */
+p, span, div, h4, .modal-body, .text-muted {
+    color: var(--text-color) !important;
+}
+
+/* --- 3. 卡片與 Modal (磨砂玻璃質感) --- */
+.mystical-card, .modal-content {
+    background: var(--card-bg) !important;
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    color: var(--text-color) !important;
+}
+
+.mystical-input {
+    background-color: var(--input-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-color) !important;
+    text-align: center;
+    border-radius: 50px;
+    padding: 10px;
+}
+
+.btn-mystical {
+    background: transparent;
+    color: var(--accent-color) !important;
+    border: 1px solid var(--accent-color);
+    padding: 12px 40px;
+    border-radius: 50px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.btn-mystical:hover {
+    background: var(--accent-color);
+    color: var(--bg-color) !important;
+    box-shadow: 0 0 15px var(--glow-color);
+}
+
+/* --- 4. 扇形塔羅牌庫 (妳最愛的 40x75 尺寸) --- */
+.tarot-deck {
+    display: flex;
+    justify-content: center;
+    padding: 40px 0; /* 增加空間讓它 hover */
+}
+
+.deck-card {
+    width: 40px !important;
+    height: 75px !important;
+    background: #1e293b;
+    border: 1px solid var(--accent-color);
+    border-radius: 6px;
+    margin-left: -25px; /* 扇形疊加效果 */
+    cursor: pointer;
+    transition: 0.3s;
+    position: relative;
+}
+
+.deck-card:first-child { margin-left: 0; }
+
+.deck-card:hover {
+    transform: translateY(-25px) scale(1.1);
+    z-index: 100;
+    box-shadow: 0 10px 20px var(--glow-color);
+    border-color: #ffffff;
+}
+
+/* --- 5. 抽牌結果容器 (較大尺寸) --- */
+.card-container {
+    perspective: 1000px;
+    width: 160px;
+    height: 270px;
+    margin: 0 auto;
+}
+
+.card-inner {
+    position: relative; width: 100%; height: 100%;
+    transition: transform 0.8s; transform-style: preserve-3d;
+}
+
+.card-inner.is-flipped { transform: rotateY(180deg); }
+
+.card-front, .card-back {
+    position: absolute; width: 100%; height: 100%;
+    backface-visibility: hidden; border-radius: 15px; overflow: hidden;
+}
+
+.card-front {
+    background: #1e293b;
+    border: 2px solid var(--accent-color);
+}
+
+.card-back { transform: rotateY(180deg); }
+.card-back img { width: 100%; height: 100%; object-fit: cover; }
+
+.btn-close { filter: var(--btn-close-filter); }
+
 /* 洗牌動畫 */
 .shuffling .deck-card { animation: shuffle-anim 0.6s infinite; }
 @keyframes shuffle-anim {
-    0%, 100% { transform: translate(0,0); }
-    50% { transform: translate(8px, -8px) rotate(3deg); }
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(5px, -5px) rotate(2deg); }
 }
