@@ -1,4 +1,3 @@
-// script.js
 document.addEventListener('DOMContentLoaded', () => {
     // 預載截圖工具
     if (!window.html2canvas) {
@@ -21,9 +20,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const historyBtn = document.getElementById('history-btn');
     const historyBody = document.getElementById('history-modal-body');
 
+    // 移除不必要的彈窗觸發，改由 JS 控制
     drawLotBtn.removeAttribute('data-bs-toggle');
     drawLotBtn.removeAttribute('data-bs-target');
 
+    // 在左側塔羅牌陣上方加入曲風輸入框
     if (!document.getElementById('music-genre-input')) {
         deckContainer.insertAdjacentHTML('beforebegin', '<div class="d-flex justify-content-center"><input type="text" id="music-genre-input" class="form-control mystical-input mt-3 mb-2" style="max-width: 250px;" placeholder="🎵 想聽什麼曲風？(選填)"></div>');
     }
@@ -64,14 +65,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // 🌟 滿血復活！完整的 22 張大阿爾克那塔羅牌
     const tarotCards = [
-        { name: "0. 愚者", image: "https://upload.wikimedia.org/wikipedia/commons/9/90/RWS_Tarot_00_Fool.jpg" },
-        { name: "1. 魔術師", image: "https://upload.wikimedia.org/wikipedia/commons/d/de/RWS_Tarot_01_Magician.jpg" },
-        { name: "2. 女祭司", image: "https://upload.wikimedia.org/wikipedia/commons/8/88/RWS_Tarot_02_High_Priestess.jpg" },
-        { name: "6. 戀人", image: "https://upload.wikimedia.org/wikipedia/commons/d/db/RWS_Tarot_06_Lovers.jpg" },
-        { name: "10. 命運之輪", image: "https://upload.wikimedia.org/wikipedia/commons/3/3c/RWS_Tarot_10_Wheel_of_Fortune.jpg" },
-        { name: "19. 太陽", image: "https://upload.wikimedia.org/wikipedia/commons/1/17/RWS_Tarot_19_Sun.jpg" },
-        { name: "21. 世界", image: "https://upload.wikimedia.org/wikipedia/commons/f/ff/RWS_Tarot_21_World.jpg" }
+        { name: "0. 愚者 (The Fool)", image: "https://upload.wikimedia.org/wikipedia/commons/9/90/RWS_Tarot_00_Fool.jpg" },
+        { name: "1. 魔術師 (The Magician)", image: "https://upload.wikimedia.org/wikipedia/commons/d/de/RWS_Tarot_01_Magician.jpg" },
+        { name: "2. 女祭司 (The High Priestess)", image: "https://upload.wikimedia.org/wikipedia/commons/8/88/RWS_Tarot_02_High_Priestess.jpg" },
+        { name: "3. 皇后 (The Empress)", image: "https://upload.wikimedia.org/wikipedia/commons/d/d2/RWS_Tarot_03_Empress.jpg" },
+        { name: "4. 皇帝 (The Emperor)", image: "https://upload.wikimedia.org/wikipedia/commons/c/c3/RWS_Tarot_04_Emperor.jpg" },
+        { name: "5. 教皇 (The Hierophant)", image: "https://upload.wikimedia.org/wikipedia/commons/8/8d/RWS_Tarot_05_Hierophant.jpg" },
+        { name: "6. 戀人 (The Lovers)", image: "https://upload.wikimedia.org/wikipedia/commons/d/db/RWS_Tarot_06_Lovers.jpg" },
+        { name: "7. 戰車 (The Chariot)", image: "https://upload.wikimedia.org/wikipedia/commons/9/9b/RWS_Tarot_07_Chariot.jpg" },
+        { name: "8. 力量 (Strength)", image: "https://upload.wikimedia.org/wikipedia/commons/f/f5/RWS_Tarot_08_Strength.jpg" },
+        { name: "9. 隱者 (The Hermit)", image: "https://upload.wikimedia.org/wikipedia/commons/4/4d/RWS_Tarot_09_Hermit.jpg" },
+        { name: "10. 命運之輪 (Wheel of Fortune)", image: "https://upload.wikimedia.org/wikipedia/commons/3/3c/RWS_Tarot_10_Wheel_of_Fortune.jpg" },
+        { name: "11. 正義 (Justice)", image: "https://upload.wikimedia.org/wikipedia/commons/e/e0/RWS_Tarot_11_Justice.jpg" },
+        { name: "12. 倒吊人 (The Hanged Man)", image: "https://upload.wikimedia.org/wikipedia/commons/2/2b/RWS_Tarot_12_Hanged_Man.jpg" },
+        { name: "13. 死神 (Death)", image: "https://upload.wikimedia.org/wikipedia/commons/d/d7/RWS_Tarot_13_Death.jpg" },
+        { name: "14. 節制 (Temperance)", image: "https://upload.wikimedia.org/wikipedia/commons/f/f8/RWS_Tarot_14_Temperance.jpg" },
+        { name: "15. 惡魔 (The Devil)", image: "https://upload.wikimedia.org/wikipedia/commons/5/55/RWS_Tarot_15_Devil.jpg" },
+        { name: "16. 高塔 (The Tower)", image: "https://upload.wikimedia.org/wikipedia/commons/5/53/RWS_Tarot_16_Tower.jpg" },
+        { name: "17. 星星 (The Star)", image: "https://upload.wikimedia.org/wikipedia/commons/d/db/RWS_Tarot_17_Star.jpg" },
+        { name: "18. 月亮 (The Moon)", image: "https://upload.wikimedia.org/wikipedia/commons/7/7f/RWS_Tarot_18_Moon.jpg" },
+        { name: "19. 太陽 (The Sun)", image: "https://upload.wikimedia.org/wikipedia/commons/1/17/RWS_Tarot_19_Sun.jpg" },
+        { name: "20. 審判 (Judgement)", image: "https://upload.wikimedia.org/wikipedia/commons/d/dd/RWS_Tarot_20_Judgment.jpg" },
+        { name: "21. 世界 (The World)", image: "https://upload.wikimedia.org/wikipedia/commons/f/ff/RWS_Tarot_21_World.jpg" }
     ];
 
     const processDraw = async (q = "", isDaily = false) => {
@@ -81,13 +98,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentGenre = isDaily ? genreInput.value.trim() : "";
 
         modalTitle.innerText = isDaily ? "🔮 每日神諭讀取中..." : `💬 正在編譯解答...`;
-        modalBody.innerHTML = `<div class="text-center my-4"><div class="spinner-border text-info"></div><p class="mt-2">正在與宇宙進行 Git Merge...</p></div>`;
+        modalBody.innerHTML = `<div class="text-center my-4"><div class="spinner-border text-info"></div><p class="mt-2 text-muted">正在與宇宙進行連線...</p></div>`;
+
+        // 🌟 手動喚出視窗，確保不會跟舊設定打架
+        const resultModal = new window.bootstrap.Modal(document.getElementById('resultModal'));
+        resultModal.show();
 
         let aiText = await getAIInterpretation(q || "今日運勢", c.name, pos, currentGenre, isDaily);
 
         let readingText = aiText;
         let songStr = "", luckyItem = "", luckyColor = "";
 
+        // 🌟 防彈版 Regex 解析，保證文字不擠壓
         if (isDaily) {
             const songMatch = aiText.match(/🎵\s*推薦歌曲[：:]\s*(.+)/);
             const itemMatch = aiText.match(/🍀\s*幸運物[：:]\s*(.+)/);
@@ -122,15 +144,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const ytLink = `https://www.youtube.com/results?search_query=${encodeURIComponent(songStr)}`;
             extraHtml += `
                 <div class="mt-3 text-center">
-                    <a href="${ytLink}" target="_blank" class="btn btn-sm btn-info rounded-pill px-4">🎵 去 YouTube 搜尋：${songStr}</a>
+                    <a href="${ytLink}" target="_blank" class="btn btn-sm btn-info rounded-pill px-4" style="text-decoration:none;">▶️ 去 YouTube 搜尋：${songStr}</a>
                 </div>`;
+        }
+
+        if (currentUser && !aiText.includes("❌")) {
+            window.addDoc(window.collection(db, "fortuneHistory"), {
+                uid: currentUser.uid, question: q || "每日運勢", cardName: c.name, position: pos,
+                interpretation: readingText, timestamp: new Date()
+            });
         }
 
         modalTitle.innerText = isDaily ? "🔮 今日塔羅神諭" : "💬 靈魂診斷結果";
 
-        // 🌟 核心修復：確保 capture-area 撐開，下載按鈕只有一個且在最外面
         modalBody.innerHTML = `
-            <div id="capture-area" class="p-3" style="background: var(--modal-bg); width: 100%;">
+            <div id="capture-area" class="p-3" style="background: var(--modal-bg); width: 100%; border-radius: 12px;">
                 <div class="card-container mb-3 mx-auto">
                     <div class="card-inner" id="flip-target">
                         <div class="card-front"></div>
@@ -146,25 +174,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${extraHtml}
             </div>
             <div class="mt-4 text-center border-top border-secondary pt-3">
-                <button id="real-download-btn" class="btn btn-sm btn-outline-secondary rounded-pill px-4">下載今日神諭 📸</button>
+                <button id="real-download-btn" class="btn btn-sm btn-outline-secondary rounded-pill px-4">下載結果 📸</button>
             </div>
         `;
 
         setTimeout(() => document.getElementById('flip-target').classList.add('is-flipped'), 100);
 
-        // 🌟 下載按鈕點擊事件
+        // 🌟 下載截圖功能
         setTimeout(() => {
             const btn = document.getElementById('real-download-btn');
             if (btn) {
                 btn.onclick = () => {
                     const target = document.getElementById('capture-area');
-                    btn.innerText = "正在截圖...";
-                    window.html2canvas(target, { backgroundColor: '#161b22', useCORS: true }).then(canvas => {
+                    btn.innerText = "截圖處理中...";
+                    window.html2canvas(target, { backgroundColor: '#161b22', useCORS: true, allowTaint: true }).then(canvas => {
                         const link = document.createElement('a');
                         link.download = `Oracle_${Date.now()}.png`;
                         link.href = canvas.toDataURL();
                         link.click();
-                        btn.innerText = "下載今日神諭 📸";
+                        btn.innerText = "下載結果 📸";
+                    }).catch(err => {
+                        console.error(err);
+                        alert("截圖遭瀏覽器跨域阻擋，請直接使用手機截圖！");
+                        btn.innerText = "下載結果 📸";
                     });
                 };
             }
@@ -177,8 +209,6 @@ document.addEventListener('DOMContentLoaded', () => {
         for(let i=0; i<22; i++){
             const card = document.createElement('div');
             card.className = 'deck-card';
-            card.setAttribute('data-bs-toggle', 'modal');
-            card.setAttribute('data-bs-target', '#resultModal');
             card.onclick = () => {
                 const q = isDaily ? "" : userQuestionInput.value.trim();
                 processDraw(q, isDaily);
@@ -202,11 +232,31 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!temp) {
             temp = document.createElement('div');
             temp.id = 'temp-deck-container';
-            temp.className = 'mt-4 text-center';
+            temp.className = 'mt-4 text-center w-100';
             drawLotBtn.parentElement.appendChild(temp);
         }
-        temp.innerHTML = `<p class="small text-accent mb-2">宇宙已接收到訊息，請感應一張卡牌：</p><div class="tarot-deck" id="temp-deck"></div>`;
+        temp.innerHTML = `<p class="small text-accent mb-2">宇宙已接收到訊息，請感應一張卡牌：</p><div class="tarot-deck mx-auto" id="temp-deck"></div>`;
         renderDeck(document.getElementById('temp-deck'), false);
+    };
+
+    historyBtn.onclick = async () => {
+        if (!currentUser) return;
+        historyBody.innerHTML = '<div class="text-center my-4"><div class="spinner-border text-warning"></div></div>';
+        const q = window.query(window.collection(db, "fortuneHistory"), window.where("uid", "==", currentUser.uid));
+        const snap = await window.getDocs(q);
+        let records = [];
+        snap.forEach(doc => records.push(doc.data()));
+        records.sort((a, b) => b.timestamp.toMillis() - a.timestamp.toMillis());
+
+        let html = '<ul class="list-group list-group-flush">';
+        records.forEach(r => {
+            html += `<li class="list-group-item bg-transparent text-light border-secondary py-3">
+                <div class="small text-info">${r.timestamp.toDate().toLocaleString()}</div>
+                <div class="fw-bold text-accent">${r.cardName} (${r.position})</div>
+                <div class="small mt-1 opacity-75">${r.interpretation}</div>
+            </li>`;
+        });
+        historyBody.innerHTML = html + '</ul>';
     };
 
     themeToggleBtn.onclick = () => {

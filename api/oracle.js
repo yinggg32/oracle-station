@@ -1,4 +1,3 @@
-// api/oracle.js
 module.exports = async function handler(req, res) {
     const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) return res.status(500).json({ error: "環境變數 GROQ_API_KEY 是空的！" });
@@ -16,7 +15,7 @@ module.exports = async function handler(req, res) {
             formatInstruction = `
             3. 音樂推薦：${genreText} 絕對不可捏造。
             4. 你必須親自思考一個符合牌義的【幸運物】和【幸運色】。
-            5. 回覆格式【必須】嚴格按照以下關鍵字輸出：
+            5. 回覆格式【必須】嚴格按照以下關鍵字輸出，不要加上其他符號：
             [解牌內容]
             🎵 推薦歌曲：[歌手] - [歌名]
             🍀 幸運物：[具體物品]
@@ -32,7 +31,7 @@ module.exports = async function handler(req, res) {
         你是一位敏銳、直言不諱的塔羅占卜師。使用者問：「${question}」。抽中：「${cardName} (${position})」。
 
         請嚴格遵守：
-        1. 針對問題給予「具體、切實的行動建議」。問考試就給讀書方法，問吃什麼就直接推薦食物(如：和牛火鍋、松阪豬、生魚片等)。
+        1. 針對問題給予「具體、切實的行動建議」。問考試就給讀書方法，問吃什麼就直接推薦具體食物名稱(如：和牛火鍋、松阪豬等)。
         2. 絕對【不可】給「尋找內心平靜」、「傾聽內心聲音」這種廢話！我要的是真正的建議。
         ${formatInstruction}
         `;
@@ -41,10 +40,10 @@ module.exports = async function handler(req, res) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
             body: JSON.stringify({
-                model: 'llama-3.1-70b-versatile', // 換成更聰明的模型
+                model: 'llama-3.1-70b-versatile',
                 messages: [{ role: 'user', content: promptText }],
                 max_tokens: 400,
-                temperature: 0.85 // 調高創意度
+                temperature: 0.85
             })
         });
 

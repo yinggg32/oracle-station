@@ -15,7 +15,6 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-transparent pt-3 px-4">
         <div class="container-fluid">
             <button id="theme-toggle" class="btn btn-outline-secondary rounded-pill btn-sm">切換明亮晨光 ☀️</button>
-
             <div class="d-flex align-items-center ms-auto">
                 <button id="login-btn" class="btn btn-mystical btn-sm">登入解鎖運勢紀錄 🔮</button>
                 <div id="user-profile" class="d-none d-flex align-items-center">
@@ -38,9 +37,7 @@
                 <div class="mystical-card p-4 text-center h-100 shadow">
                     <h4 class="mb-3 text-accent">今日塔羅神諭</h4>
                     <p class="small text-muted mb-4">從下方牌陣中選取一張感應卡牌</p>
-
                     <button id="shuffle-btn" class="btn btn-sm btn-outline-secondary rounded-pill mb-4">重新洗牌 🔀</button>
-
                     <div id="tarot-deck-container" class="tarot-deck"></div>
                 </div>
             </div>
@@ -49,12 +46,9 @@
                 <div class="mystical-card p-4 text-center h-100 shadow">
                     <h4 class="mb-3 text-accent">AI 靈魂診斷</h4>
                     <p class="small text-muted mb-4">心中默念問題，讓宇宙為你解答</p>
-
                     <input type="text" id="user-question" class="form-control mystical-input mb-4 py-2" placeholder="例如：期中專題會過嗎？晚餐吃什麼？">
-
                     <button id="draw-lot-btn" class="btn btn-mystical w-100">連結宇宙運算 ✨</button>
-
-                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -89,33 +83,29 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
     <script>
-        // ⚠️ 采瑩注意：請將下方替換成妳自己的 Firebase 設定！
         const firebaseConfig = {
-            apiKey: "請貼上妳的apiKey",
-            authDomain: "請貼上妳的authDomain",
-            projectId: "請貼上妳的projectId",
-            storageBucket: "請貼上妳的storageBucket",
-            messagingSenderId: "請貼上妳的messagingSenderId",
-            appId: "請貼上妳的appId"
+            apiKey: "AIzaSyCmXEqjjpvPMvb3ms3xEKiV9bVd5bgCzUg",
+            authDomain: "oracle-station-a187f.firebaseapp.com",
+            projectId: "oracle-station-a187f",
+            storageBucket: "oracle-station-a187f.firebasestorage.app",
+            messagingSenderId: "819786930760",
+            appId: "1:819786930760:web:db16c7486a9d65b6d8567d",
+            measurementId: "G-3Y59W94T24"
         };
         firebase.initializeApp(firebaseConfig);
         window.firebaseDb = firebase.firestore();
         window.firebaseAuth = firebase.auth();
 
-        // Firebase 橋接函數 (讓 script.js 能夠無縫使用)
         window.collection = (db, name) => db.collection(name);
         window.addDoc = (col, data) => col.add(data);
         window.query = (col, ...args) => {
             let q = col;
-            if(args.length > 0 && args[0].type === 'where') {
-                q = q.where(args[0].field, args[0].op, args[0].val);
-            }
+            if(args.length > 0 && args[0].type === 'where') q = q.where(args[0].field, args[0].op, args[0].val);
             return q;
         };
         window.where = (field, op, val) => ({type: 'where', field, op, val});
@@ -124,7 +114,6 @@
         window.signOut = (auth) => auth.signOut();
         window.GoogleAuthProvider = firebase.auth.GoogleAuthProvider;
     </script>
-
     <script src="script.js"></script>
 </body>
 </html>
