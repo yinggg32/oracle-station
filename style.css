@@ -161,3 +161,24 @@ p, span, div, h4, .modal-body, .text-muted {
 #modal-body .p-3.rounded strong {
     color: var(--accent-color) !important;
 }
+/* 🌟 讓輸入框點擊 (focus) 時發光變亮，字體絕對清晰 */
+.mystical-input:focus {
+    background-color: rgba(30, 41, 59, 0.95) !important; /* 深色模式下點擊會變亮一點 */
+    border-color: var(--accent-color) !important; /* 邊框變成亮藍色 */
+    box-shadow: 0 0 15px var(--glow-color) !important; /* 加上妳最愛的藍色螢光 */
+    color: #ffffff !important; /* 強制打字的字體變成純白色，超清楚 */
+    outline: none; /* 拔掉瀏覽器預設的醜醜黑框 */
+}
+
+/* ☀️ 淺色模式下點擊的狀態 */
+body.light-theme .mystical-input:focus {
+    background-color: #ffffff !important; /* 淺色模式點擊時變成純白底 */
+    color: #1a1a1a !important; /* 字體變成深黑色 */
+    box-shadow: 0 0 15px rgba(176, 141, 87, 0.5) !important; /* 淺色模式專屬的暗金光 */
+}
+
+/* 確保輸入框平常的字體也是清楚的 */
+.mystical-input {
+    color: var(--text-color) !important;
+    font-weight: 500; /* 讓字體稍微粗一點點，更好閱讀 */
+}
