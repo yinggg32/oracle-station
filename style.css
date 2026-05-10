@@ -1,32 +1,33 @@
-/* --- 基礎變數設定 --- */
+/* --- 基礎設定與變數 --- */
 :root {
     --bg-color: #fdfaf5;
     --text-main: #222222;
     --text-muted: #555555;
     --card-bg: #ffffff;
     --accent-color: #b8860b;
-    --primary-btn: #8e44ad;
+    --modal-bg: #ffffff;
 }
 
-/* 深色模式變數 */
-.dark-theme {
+/* 🌟 深色模式核心變數 - 這裡一定要跟妳的 JS 切換邏輯對應 */
+body.dark-theme {
     --bg-color: #121212;
     --text-main: #f0f6fc;
     --text-muted: #a3b3c4;
     --card-bg: #1e1e1e;
     --accent-color: #ffd700;
+    --modal-bg: #1c2128;
 }
 
-/* --- 全域樣式 --- */
 body {
     background-color: var(--bg-color) !important;
     color: var(--text-main) !important;
     font-family: 'Noto Serif TC', serif;
-    transition: all 0.3s ease;
+    transition: background-color 0.3s, color 0.3s;
     min-height: 100vh;
+    overflow-x: hidden;
 }
 
-/* 雜訊背景疊加 (設定為不擋點擊) */
+/* 背景雜訊 - pointer-events: none 絕對不能忘 */
 .noise-overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -36,125 +37,139 @@ body {
     z-index: 9999;
 }
 
-/* --- 文字樣式 (徹底修復隱形問題) --- */
-h1, h2, h3, h4, .mystical-title {
+/* --- 文字顯靈核心 (最強對比) --- */
+h1, h2, h3, h4, .mystical-title, .text-accent {
     color: var(--accent-color) !important;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-p, span, div, label {
+p, span, div, .modal-body {
     color: var(--text-main) !important;
 }
 
-.text-muted, .small {
+.text-muted {
     color: var(--text-muted) !important;
 }
 
-/* --- 卡片與元件 --- */
+/* --- 妳原本超美的卡片版面 --- */
 .mystical-card {
     background-color: var(--card-bg) !important;
-    border: 1px solid rgba(128, 128, 128, 0.2);
     border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    border: 1px solid rgba(128, 128, 128, 0.2);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     color: var(--text-main) !important;
-    transition: transform 0.3s ease;
 }
 
-/* Modal 彈窗文字修正 */
+/* Modal 彈窗文字與背景 */
 .modal-content {
-    background-color: var(--card-bg) !important;
+    background-color: var(--modal-bg) !important;
     color: var(--text-main) !important;
     border: 1px solid var(--accent-color);
+    border-radius: 20px;
 }
 
-.modal-header, .modal-footer {
-    border-color: rgba(128, 128, 128, 0.2);
-}
-
-/* 針對解牌結果的文字塊 (加強對比) */
+/* 解牌結果文字塊 (加強對比) */
 #modal-body .p-3.rounded {
     background-color: rgba(184, 134, 11, 0.1) !important;
     border-left: 5px solid var(--accent-color) !important;
-    margin-top: 15px;
-}
-
-/* 幸運三寶區塊 */
-.mt-4.p-3.rounded.bg-dark {
-    background-color: rgba(0, 0, 0, 0.05) !important; /* 淺色時淡淡灰色 */
-    border: 1px solid rgba(128, 128, 128, 0.3) !important;
-}
-
-.dark-theme .mt-4.p-3.rounded.bg-dark {
-    background-color: rgba(255, 255, 255, 0.05) !important; /* 深色時微微發光 */
-}
-
-/* --- 輸入框與按鈕 --- */
-.mystical-input {
-    background: transparent !important;
-    border: 2px solid var(--accent-color) !important;
     color: var(--text-main) !important;
-    border-radius: 50px;
 }
 
-.mystical-input::placeholder {
-    color: var(--text-muted) !important;
-    opacity: 0.7;
-}
-
-.btn-mystical {
-    background: linear-gradient(135deg, #6e45e2, #88d3ce);
-    border: none;
-    color: white !important;
-    font-weight: bold;
-    border-radius: 50px;
-    padding: 10px 25px;
-    transition: all 0.3s ease;
-}
-
-.btn-mystical:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(110, 69, 226, 0.4);
-}
-
-/* --- 塔羅牌樣式 --- */
-.tarot-card-wrapper {
+/* --- 救回消失的塔羅牌與動畫 --- */
+.tarot-deck {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
     perspective: 1000px;
-    cursor: pointer;
-    margin-bottom: 15px;
+    padding: 20px;
 }
 
-.tarot-card-inner {
+.deck-card, .card-container {
+    width: 140px;
+    height: 220px;
+    cursor: pointer;
     position: relative;
-    width: 100px;
-    height: 160px;
-    transition: transform 0.6s;
+    transition: transform 0.3s;
+}
+
+.deck-card {
+    background: linear-gradient(135deg, #2c3e50, #000000);
+    border: 2px solid var(--accent-color);
+    border-radius: 10px;
+}
+
+.deck-card:hover {
+    transform: translateY(-10px) scale(1.05);
+    box-shadow: 0 0 15px var(--accent-color);
+}
+
+/* 翻牌動畫 */
+.card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.8s;
     transform-style: preserve-3d;
 }
 
-.tarot-card-back, .tarot-card-front {
+.card-inner.is-flipped {
+    transform: rotateY(180deg);
+}
+
+.card-front, .card-back {
     position: absolute;
-    width: 100%; height: 100%;
+    width: 100%;
+    height: 100%;
     backface-visibility: hidden;
     border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     border: 2px solid var(--accent-color);
+    overflow: hidden;
 }
 
-.tarot-card-back {
-    background: linear-gradient(45deg, #2c3e50, #000000);
-    color: gold;
-    font-size: 24px;
+.card-front {
+    background: linear-gradient(135deg, #1a1a1a, #434343);
 }
 
-.tarot-card-front {
+.card-back {
     background: white;
     transform: rotateY(180deg);
 }
 
-.tarot-card-front img {
-    width: 100%; height: 100%;
-    border-radius: 8px;
+.card-back img {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
+}
+
+/* --- 按鈕與輸入框 --- */
+.mystical-input {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid var(--accent-color) !important;
+    color: var(--text-main) !important;
+    border-radius: 10px;
+}
+
+.btn-mystical {
+    background: linear-gradient(45deg, #6a11cb, #2575fc);
+    border: none;
+    color: white !important;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-weight: bold;
+}
+
+.btn-mystical:hover {
+    filter: brightness(1.1);
+}
+
+/* 洗牌動畫效果 */
+.shuffling .deck-card {
+    animation: shuffle-anim 0.8s ease-in-out infinite;
+}
+
+@keyframes shuffle-anim {
+    0% { transform: translate(0, 0); }
+    50% { transform: translate(10px, -5px) rotate(2deg); }
+    100% { transform: translate(0, 0); }
 }
