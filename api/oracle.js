@@ -5,35 +5,33 @@ module.exports = async function handler(req, res) {
     try {
         const { question, cardName, position, musicGenre, isDaily } = req.body;
 
-        // 🌟 核心公式：定義統一的輸出結構
-        let structure = `
-        [牌面解釋]
-        (請先針對 "${cardName} ${position}" 的牌義結合問題 "${question}" 進行約 50 字的深度解析)
-
-        [具體建議]
-        1. (第一條具體行動建議)
-        2. (第二條具體行動建議)
-        3. (第三條具體行動建議)
-        `;
-
+        let extraDaily = "";
         if (isDaily) {
-            const genreText = musicGenre ? `想聽「${musicGenre}」曲風` : `推薦 R&B, Hip-Hop 或 City Pop`;
-            structure += `
-            🎵 推薦歌曲：歌手 - 歌名
+            const genreQuery = musicGenre ? `「${musicGenre}」` : `R&B, Hip-Hop, City Pop 或 K-Pop`;
+            extraDaily = `
+            🎵 推薦歌曲：[請從全球流行樂庫中，推薦一首與 ${genreQuery} 相關的【真實存在】歌曲。請發揮創意，除了熱門歌手外，也可以推薦具質感的獨立音樂或正在崛起的藝人，絕對不要每次都推薦相同的那幾位！格式：歌手 - 歌名]
             🍀 幸運物：具體物品
             ✨ 幸運色：顏色
             `;
         }
 
         const promptText = `
-        你是一位敏銳、直言不諱的塔羅占卜師。
-        【嚴格規則】
-        1. 你必須「完全依照」下方的結構輸出，絕對禁止任何開場白（例如：你好、這張牌代表...）。
-        2. 建議內容必須是具體的行為（如：去吃火鍋、找朋友聊天、整理書桌），禁止給心靈雞湯。
-        3. 推薦歌曲必須是【真實存在】且能在 YouTube 搜尋到的。
+        你是一位見多識廣、品味卓越的塔羅占卜師。
+        使用者問：「${question}」。抽中：「${cardName} (${position})」。
+
+        【輸出指南】
+        1. 嚴格遵守下方結構，禁止任何廢話或開場白。
+        2. 建議必須具體（例如：去吃某種特定食物、做某個具體動作）。
+        3. 音樂推薦必須【真實存在】，且要具有多樣性，避開過於單一的歌手名單。
 
         【輸出結構範本】
-        ${structure}
+        [牌面解釋]
+        在這裡直接填入約50字深度解析，不要印出指令括號。
+
+        [具體建議]
+        1. 第一點具體建議
+        2. 第二點具體建議
+        3. 第三點具體建議${extraDaily}
         `;
 
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -43,7 +41,7 @@ module.exports = async function handler(req, res) {
                 model: 'llama-3.1-8b-instant',
                 messages: [{ role: 'user', content: promptText }],
                 max_tokens: 500,
-                temperature: 0.4 // 🌟 調低溫度，讓格式更穩定，減少 AI 亂發揮的機率
+                temperature: 0.7 // 🌟 稍微調高溫度到 0.7，讓音樂推薦更有驚喜感，但仍保有格式穩定度
             })
         });
 
