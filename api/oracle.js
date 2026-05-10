@@ -7,31 +7,34 @@ module.exports = async function handler(req, res) {
 
         let extraDaily = "";
         if (isDaily) {
-            const genreQuery = musicGenre ? `「${musicGenre}」` : `R&B, Hip-Hop, City Pop 或 K-Pop`;
+            // 如果沒填寫曲風，就預設推薦有質感的節奏音樂
+            const genreQuery = musicGenre ? `，且曲風為「${musicGenre}」` : `，請優先推薦具質感的 R&B、Hip-Hop、City Pop、K-pop 或流行好歌`;
+
+            // 讓歌曲跟「塔羅牌的能量」綁定！
             extraDaily = `
-            🎵 推薦歌曲：[請從全球流行樂庫中，推薦一首與 ${genreQuery} 相關的【真實存在】歌曲。請發揮創意，除了熱門歌手外，也可以推薦具質感的獨立音樂或正在崛起的藝人，絕對不要每次都推薦相同的那幾位！格式：歌手 - 歌名]
+            🎵 推薦歌曲：請根據「${cardName} ${position}」這張牌的意境與氛圍${genreQuery}，推薦一首完全符合此能量且【真實存在、極具知名度】的歌曲。格式：歌手 - 歌名
             🍀 幸運物：具體物品
             ✨ 幸運色：顏色
             `;
         }
 
         const promptText = `
-        你是一位見多識廣、品味卓越的塔羅占卜師。
+        你是一位敏銳且具備極高音樂品味的塔羅占卜師。
         使用者問：「${question}」。抽中：「${cardName} (${position})」。
 
-        【輸出指南】
-        1. 嚴格遵守下方結構，禁止任何廢話或開場白。
-        2. 建議必須具體（例如：去吃某種特定食物、做某個具體動作）。
-        3. 音樂推薦必須【真實存在】，且要具有多樣性，避開過於單一的歌手名單。
+        【嚴格規則】
+        1. 完全遵守下方的輸出結構，不要印出括號內的提示文字，也不要有任何開場白。
+        2. 建議必須是日常可以做到的具體行動（例如：點一杯拿鐵、去海邊走走）。
+        3. 【極度重要】推薦歌曲必須是 YouTube 或 Spotify 上真實存在的熱門或經典歌曲，絕對禁止發明歌名！
 
         【輸出結構範本】
         [牌面解釋]
-        在這裡直接填入約50字深度解析，不要印出指令括號。
+        直接寫出約50字的深度解析內容。
 
         [具體建議]
-        1. 第一點具體建議
-        2. 第二點具體建議
-        3. 第三點具體建議${extraDaily}
+        1. 具體行動建議一
+        2. 具體行動建議二
+        3. 具體行動建議三${extraDaily}
         `;
 
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -41,7 +44,8 @@ module.exports = async function handler(req, res) {
                 model: 'llama-3.1-8b-instant',
                 messages: [{ role: 'user', content: promptText }],
                 max_tokens: 500,
-                temperature: 0.7 // 🌟 稍微調高溫度到 0.7，讓音樂推薦更有驚喜感，但仍保有格式穩定度
+                // 溫度設為 0.5：這是實測出「不會亂發明歌單」又「能保持變化」的最完美平衡點
+                temperature: 0.5
             })
         });
 
