@@ -1,101 +1,160 @@
+/* --- 基礎變數設定 --- */
 :root {
-    --bg-color: #0d1117; --text-color: #e6edf3; --card-bg: rgba(30, 41, 59, 0.7);
-    --accent-color: #58a6ff; --glow-color: rgba(88, 166, 255, 0.5);
-    --input-bg: rgba(13, 17, 23, 0.8); --modal-bg: #161b22; --border-color: rgba(255, 255, 255, 0.1);
-    --btn-close-filter: invert(1);
+    --bg-color: #fdfaf5;
+    --text-main: #222222;
+    --text-muted: #555555;
+    --card-bg: #ffffff;
+    --accent-color: #b8860b;
+    --primary-btn: #8e44ad;
 }
 
-body.light-theme {
-    --bg-color: #fcfaf2; --text-color: #3e3e3e; --card-bg: rgba(255, 255, 255, 0.8);
-    --accent-color: #b08d57; --glow-color: rgba(176, 141, 87, 0.3);
-    --input-bg: rgba(255, 255, 255, 0.8); --modal-bg: #fdfdfd; --border-color: rgba(176, 141, 87, 0.3);
-    --btn-close-filter: invert(0);
-}
-
-body { background-color: var(--bg-color); color: var(--text-color); font-family: 'Noto Serif TC', serif; transition: 0.4s; min-height: 100vh; overflow-x: hidden; }
-.noise-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://grainy-gradients.vercel.app/noise.svg'); opacity: 0.05; pointer-events: none; z-index: 9999; }
-.mystical-title { color: var(--accent-color); text-shadow: 0 0 20px var(--glow-color); }
-.mystical-card, .modal-content { background: var(--card-bg); backdrop-filter: blur(12px); border: 1px solid var(--border-color); border-radius: 20px; color: var(--text-color) !important; }
-.mystical-input { background-color: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); text-align: center; }
-.btn-mystical { background: transparent; color: var(--accent-color); border: 1px solid var(--accent-color); padding: 12px 40px; border-radius: 50px; font-weight: bold; transition: 0.3s; }
-.btn-mystical:hover { background: var(--accent-color); color: var(--bg-color); box-shadow: 0 0 15px var(--glow-color); }
-
-/* 塔羅牌陣樣式 */
-.tarot-deck { display: flex; justify-content: center; padding-top: 20px; flex-wrap: wrap; max-width: 100%; }
-.deck-card { width: 35px; height: 60px; background: #1e293b; border: 1px solid var(--accent-color); border-radius: 6px; margin-left: -20px; cursor: pointer; transition: 0.3s; margin-bottom: 10px; }
-.deck-card:first-child { margin-left: 0; }
-.deck-card:hover { transform: translateY(-15px); z-index: 100; box-shadow: 0 5px 15px var(--glow-color); }
-
-/* 翻牌動畫 */
-.card-container { perspective: 1000px; width: 140px; height: 240px; margin: 0 auto; }
-.card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
-.card-inner.is-flipped { transform: rotateY(180deg); }
-.card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 12px; overflow: hidden; }
-.card-front { background: #1e293b; border: 2px solid var(--accent-color); }
-.card-back { transform: rotateY(180deg); }
-.card-back img { width: 100%; height: 100%; object-fit: cover; }
-
-/* 歷史紀錄樣式 */
-.list-group-item { background: transparent !important; color: var(--text-color) !important; border-color: var(--border-color) !important; }
-
-/* 洗牌動畫 */
-@keyframes shuffle {
-    0%, 100% { transform: rotate(0deg); }
-    25% { transform: rotate(-3deg) translateX(-5px); }
-    75% { transform: rotate(3deg) translateX(5px); }
-}
-.shuffling .deck-card { animation: shuffle 0.3s ease-in-out infinite; }
-/* 🌟 修復深色模式文字對比度，讓字變清楚！ */
+/* 深色模式變數 */
 .dark-theme {
-    color: #f0f6fc !important; /* 整體文字變成亮白偏藍 */
+    --bg-color: #121212;
+    --text-main: #f0f6fc;
+    --text-muted: #a3b3c4;
+    --card-bg: #1e1e1e;
+    --accent-color: #ffd700;
 }
 
-.dark-theme .text-muted {
-    color: #a3b3c4 !important; /* 次要文字改成淺灰藍色，不再黑漆漆 */
+/* --- 全域樣式 --- */
+body {
+    background-color: var(--bg-color) !important;
+    color: var(--text-main) !important;
+    font-family: 'Noto Serif TC', serif;
+    transition: all 0.3s ease;
+    min-height: 100vh;
 }
 
-.dark-theme .mystical-card {
-    color: #ffffff !important; /* 卡片內的文字強制純白 */
+/* 雜訊背景疊加 (設定為不擋點擊) */
+.noise-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: url('https://grainy-gradients.vercel.app/noise.svg');
+    opacity: 0.05;
+    pointer-events: none;
+    z-index: 9999;
 }
 
-.dark-theme .p-3 {
-    color: #ffffff !important; /* 解牌文字強制純白 */
-    font-weight: 500; /* 讓字體稍微變粗一點點，更好讀 */
-}
-/* ☀️ 淺色模式 (明亮晨光) 文字強制顯靈計畫 */
-body:not(.dark-theme) {
-    background-color: #fdfaf5 !important; /* 稍微暖一點的白，保護眼睛 */
-    color: #222222 !important; /* 主文字強制深黑灰色 */
+/* --- 文字樣式 (徹底修復隱形問題) --- */
+h1, h2, h3, h4, .mystical-title {
+    color: var(--accent-color) !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-/* 針對 Modal 彈窗內的字體加深 */
-body:not(.dark-theme) .modal-content {
-    background-color: #ffffff !important;
+p, span, div, label {
+    color: var(--text-main) !important;
 }
 
-body:not(.dark-theme) #modal-body,
-body:not(.dark-theme) .p-3,
-body:not(.dark-theme) .text-accent,
-body:not(.dark-theme) .text-muted,
-body:not(.dark-theme) strong,
-body:not(.dark-theme) span {
-    color: #1a1a1a !important; /* 強制所有文字變成深黑色 */
-    opacity: 1 !important;     /* 確保透明度是 100% */
+.text-muted, .small {
+    color: var(--text-muted) !important;
 }
 
-/* 針對幸運三寶的框框加強 */
-body:not(.dark-theme) .mt-4.p-3.rounded {
-    background: rgba(0, 0, 0, 0.05) !important; /* 淡淡的灰色背景，讓字體更突出 */
-    border: 1px solid #cccccc !important;
+/* --- 卡片與元件 --- */
+.mystical-card {
+    background-color: var(--card-bg) !important;
+    border: 1px solid rgba(128, 128, 128, 0.2);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    color: var(--text-main) !important;
+    transition: transform 0.3s ease;
 }
 
-/* 幸運物與幸運色的文字 */
-body:not(.dark-theme) .col-6 {
-    color: #333333 !important;
+/* Modal 彈窗文字修正 */
+.modal-content {
+    background-color: var(--card-bg) !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--accent-color);
 }
 
-/* 解牌文字框的背景與邊框 */
-body:not(.dark-theme) .p-3.rounded.text-start {
-    background: rgba(184, 134, 11, 0.1) !important;
-    border-left: 4px solid #b8860b !important;
+.modal-header, .modal-footer {
+    border-color: rgba(128, 128, 128, 0.2);
+}
+
+/* 針對解牌結果的文字塊 (加強對比) */
+#modal-body .p-3.rounded {
+    background-color: rgba(184, 134, 11, 0.1) !important;
+    border-left: 5px solid var(--accent-color) !important;
+    margin-top: 15px;
+}
+
+/* 幸運三寶區塊 */
+.mt-4.p-3.rounded.bg-dark {
+    background-color: rgba(0, 0, 0, 0.05) !important; /* 淺色時淡淡灰色 */
+    border: 1px solid rgba(128, 128, 128, 0.3) !important;
+}
+
+.dark-theme .mt-4.p-3.rounded.bg-dark {
+    background-color: rgba(255, 255, 255, 0.05) !important; /* 深色時微微發光 */
+}
+
+/* --- 輸入框與按鈕 --- */
+.mystical-input {
+    background: transparent !important;
+    border: 2px solid var(--accent-color) !important;
+    color: var(--text-main) !important;
+    border-radius: 50px;
+}
+
+.mystical-input::placeholder {
+    color: var(--text-muted) !important;
+    opacity: 0.7;
+}
+
+.btn-mystical {
+    background: linear-gradient(135deg, #6e45e2, #88d3ce);
+    border: none;
+    color: white !important;
+    font-weight: bold;
+    border-radius: 50px;
+    padding: 10px 25px;
+    transition: all 0.3s ease;
+}
+
+.btn-mystical:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(110, 69, 226, 0.4);
+}
+
+/* --- 塔羅牌樣式 --- */
+.tarot-card-wrapper {
+    perspective: 1000px;
+    cursor: pointer;
+    margin-bottom: 15px;
+}
+
+.tarot-card-inner {
+    position: relative;
+    width: 100px;
+    height: 160px;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+}
+
+.tarot-card-back, .tarot-card-front {
+    position: absolute;
+    width: 100%; height: 100%;
+    backface-visibility: hidden;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--accent-color);
+}
+
+.tarot-card-back {
+    background: linear-gradient(45deg, #2c3e50, #000000);
+    color: gold;
+    font-size: 24px;
+}
+
+.tarot-card-front {
+    background: white;
+    transform: rotateY(180deg);
+}
+
+.tarot-card-front img {
+    width: 100%; height: 100%;
+    border-radius: 8px;
+    object-fit: cover;
 }
