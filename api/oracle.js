@@ -4,7 +4,20 @@ module.exports = async function handler(req, res) {
 
     try {
         const { question, cardName, position } = req.body;
-        const promptText = `你是一位占卜師。使用者問：${question}。抽中：${cardName}(${position})。請給80字建議，口氣像軟工系學生(可用Bug, Deadline等詞)。`;
+
+        // 🌟 超進化版 Prompt：滿滿的軟工系靈魂
+        const promptText = `
+        你是一位資深的「全端工程師兼賽博塔羅占卜師」。
+        使用者問的問題是：「${question}」。
+        使用者抽到的牌是：「${cardName} (${position})」。
+
+        請根據這張牌的牌義，精準回答使用者的問題。
+        嚴格規定：
+        1. 必須大量使用軟體工程術語來作比喻（例如：Bug、Debug、Deadline、Git Merge 衝突、無窮迴圈、StackOverflow、系統當機、重構、部署成功等）。
+        2. 語氣要像一個經驗老道、有點幽默、偶爾厭世的資深工程師。
+        3. 針對他的問題給出直接的解答與建議，絕對不要講「你好」、「我是占卜師」之類的廢話開場白。
+        4. 字數控制在 100~130 字左右。
+        `;
 
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
@@ -13,14 +26,12 @@ module.exports = async function handler(req, res) {
                 'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                // 🌟 破案關鍵：換成 Groq 最新且絕對支援的模型
                 model: 'llama-3.1-8b-instant',
                 messages: [
-                    { role: 'system', content: '你是一個精通軟體工程術語的塔羅占卜師。不講開場白。' },
                     { role: 'user', content: promptText }
                 ],
-                max_tokens: 150,
-                temperature: 0.7
+                max_tokens: 200,
+                temperature: 0.8 // 稍微調高溫度，讓 AI 的回答更有創意跟幹話感
             })
         });
 

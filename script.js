@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. 元素綁定
     const themeToggleBtn = document.getElementById('theme-toggle');
     const drawLotBtn = document.getElementById('draw-lot-btn');
     const shuffleBtn = document.getElementById('shuffle-btn');
@@ -18,7 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const db = window.firebaseDb;
     let currentUser = null;
 
-    // 2. Firebase 登入狀態監聽
     window.onAuthStateChanged(auth, (user) => {
         if (user) {
             currentUser = user;
@@ -35,7 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loginBtn.onclick = () => window.signInWithPopup(auth, new window.GoogleAuthProvider());
     logoutBtn.onclick = () => window.signOut(auth);
 
-    // 3. 呼叫 Vercel 後端 API (現在背後是超快的 Groq 引擎)
     async function getAIInterpretation(question, cardName, position) {
         try {
             const response = await fetch('/api/oracle', {
@@ -48,11 +45,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return data.text;
         } catch (e) {
             console.error("API Error:", e);
-            return "宇宙通訊中斷 ❌ 請確認後端設定是否正確。";
+            return "伺服器無回應 (Error 500) ❌ 請確認後端連線。";
         }
     }
 
-    // 4. 塔羅牌與幸運物資料
     const tarotCards = [
         { name: "0. 愚者", image: "https://upload.wikimedia.org/wikipedia/commons/9/90/RWS_Tarot_00_Fool.jpg" },
         { name: "1. 魔術師", image: "https://upload.wikimedia.org/wikipedia/commons/d/de/RWS_Tarot_01_Magician.jpg" },
@@ -73,19 +69,21 @@ document.addEventListener('DOMContentLoaded', () => {
         ]
     };
 
-    // 5. 核心抽牌邏輯
     const processDraw = async (q = "", isDaily = false) => {
         const c = tarotCards[Math.floor(Math.random() * tarotCards.length)];
         const isReversed = Math.random() < 0.5;
         const pos = isReversed ? "逆位" : "正位";
 
-        modalTitle.innerText = "宇宙連接中...";
-        modalBody.innerHTML = `<div class="spinner-border text-info my-4"></div><p class="small text-muted mt-2">雲端祕書正在解讀神諭...</p>`;
+        // 🌟 介面優化：讀取時區分標題
+        modalTitle.innerText = isDaily ? "🔮 每日神諭讀取中..." : `💬 正在運算：「${q}」...`;
+        modalBody.innerHTML = `<div class="spinner-border text-info my-4"></div><p class="small text-muted mt-2">雲端祕書正在編譯神諭...</p>`;
 
         const aiText = await getAIInterpretation(q || "今日運勢", c.name, pos);
 
         let extraHtml = "";
         let lItem = "", lColor = "";
+
+        // 🌟 介面優化：只有點擊左邊「今日運勢」時，才會出現幸運物跟音樂
         if (isDaily) {
             lItem = luckyStuff.items[Math.floor(Math.random() * luckyStuff.items.length)];
             lColor = luckyStuff.colors[Math.floor(Math.random() * luckyStuff.colors.length)];
@@ -104,13 +102,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>`;
         }
 
-        // 成功讀取後，將歷史紀錄寫入 Firebase
+        // 寫入 Firebase
         if (currentUser && !aiText.includes("❌")) {
             window.addDoc(window.collection(db, "fortuneHistory"), {
                 uid: currentUser.uid, question: q || "每日運勢", cardName: c.name, position: pos,
                 interpretation: aiText, luckyItem: lItem, luckyColor: lColor, timestamp: new Date()
             }).catch(e => console.error("Firebase 寫入失敗", e));
         }
+
+        // 🌟 介面優化：結果出來後，更新明確的標題
+        modalTitle.innerText = isDaily ? "🔮 今日塔羅神諭" : "💬 靈魂診斷結果";
 
         modalBody.innerHTML = `
             <div class="card-container mb-3"><div class="card-inner" id="flip-target"><div class="card-front"></div>
@@ -119,11 +120,9 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="p-3 rounded text-start mt-3 small shadow-sm" style="background:rgba(88, 166, 255, 0.1); border-left: 4px solid var(--accent-color);">${aiText}</div>
             ${extraHtml}
         `;
-        // 設定一點點延遲來觸發翻牌動畫
         setTimeout(() => document.getElementById('flip-target').classList.add('is-flipped'), 100);
     };
 
-    // 6. 渲染牌陣 (包含洗牌動畫與抽牌事件)
     const renderDeck = (container, isDaily) => {
         container.innerHTML = '';
         container.classList.add('shuffling');
@@ -137,20 +136,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 const q = isDaily ? "" : userQuestionInput.value.trim();
                 processDraw(q, isDaily);
 
-                // 抽完牌後，把右邊的臨時牌陣清空，讓版面恢復乾淨
                 const tempContainer = document.getElementById('temp-deck-container');
                 if(tempContainer) tempContainer.innerHTML = '';
+                if(!isDaily) userQuestionInput.value = ''; // 抽完牌自動清空輸入框
             };
             container.appendChild(card);
         }
         setTimeout(() => container.classList.remove('shuffling'), 800);
     };
 
-    // 7. 初始載入時渲染左側每日運勢牌陣
     renderDeck(deckContainer, true);
     shuffleBtn.onclick = () => renderDeck(deckContainer, true);
 
-    // 8. 右側按鈕：點擊後在下方產生牌陣，不破壞原本的輸入框
     drawLotBtn.onclick = () => {
         const q = userQuestionInput.value.trim();
         if(!q) { alert("請先輸入妳的困惑..."); return; }
@@ -161,12 +158,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (matched.length >= 2) {
             modalTitle.innerText = "❤️ 星象診斷";
             modalBody.innerHTML = `<h1 class="display-1 text-info">${80 + (q.length % 20)}%</h1><p>宇宙覺得妳們簡直是 Bug 與 Fix 般的絕配！</p>`;
-            // 手動觸發 Modal (因為按鈕本身拔掉了 data-bs-toggle)
             new window.bootstrap.Modal(document.getElementById('resultModal')).show();
             return;
         }
 
-        // 尋找或建立一個專屬的容器來放牌
         let tempContainer = document.getElementById('temp-deck-container');
         if (!tempContainer) {
             tempContainer = document.createElement('div');
@@ -179,7 +174,6 @@ document.addEventListener('DOMContentLoaded', () => {
         renderDeck(document.getElementById('temp-deck'), false);
     };
 
-    // 9. 歷史紀錄讀取
     historyBtn.onclick = async () => {
         if (!currentUser) return;
         historyBody.innerHTML = '<div class="text-center my-4"><div class="spinner-border text-warning"></div></div>';
@@ -200,6 +194,5 @@ document.addEventListener('DOMContentLoaded', () => {
         historyBody.innerHTML = html + '</ul>';
     };
 
-    // 10. 主題切換
     themeToggleBtn.onclick = () => document.body.classList.toggle('light-theme');
 });
