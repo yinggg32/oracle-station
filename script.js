@@ -14,6 +14,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const historyBtn = document.getElementById('history-btn');
     const historyBody = document.getElementById('history-modal-body');
     const downloadBtn = document.getElementById('download-btn');
+    const dailyQuotaDisplay = document.getElementById('daily-quota-display');
+    const customQuotaDisplay = document.getElementById('custom-quota-display');
 
     // 曲風輸入框
     if (!document.getElementById('music-genre-input')) {
@@ -26,22 +28,41 @@ document.addEventListener('DOMContentLoaded', () => {
     const categoryBtns = document.querySelectorAll('.category-btn');
     categoryBtns.forEach(btn => {
         btn.onclick = (e) => {
-            // 清除所有按鈕的 active 狀態
             categoryBtns.forEach(b => {
                 b.classList.remove('active', 'btn-info');
                 b.classList.add('btn-outline-info');
             });
-            // 點亮的按鈕
             e.target.classList.remove('btn-outline-info');
             e.target.classList.add('active', 'btn-info');
             currentCategory = e.target.dataset.cat;
         };
     });
 
+    // === 👑 站長後門與額度計算 ===
+    const ADMIN_EMAIL = "sophiayeh2394www@gmail.com";
+    let currentUser = null;
+
+    // 🌟 更新畫面的額度顯示
+    function updateQuotaDisplay() {
+        if (currentUser && currentUser.email === ADMIN_EMAIL) {
+            if (dailyQuotaDisplay) dailyQuotaDisplay.innerText = "👑 站長無限模式";
+            if (customQuotaDisplay) customQuotaDisplay.innerText = "👑 站長無限模式";
+            return;
+        }
+        const today = new Date().toLocaleDateString();
+        let usageData = JSON.parse(localStorage.getItem('oracleUsage')) || {};
+        if (usageData.date !== today) usageData = { date: today, dailyCount: 0, customCount: 0 };
+
+        const dailyLeft = Math.max(0, 1 - usageData.dailyCount);
+        const customLeft = Math.max(0, 3 - usageData.customCount);
+
+        if (dailyQuotaDisplay) dailyQuotaDisplay.innerText = `⏳ 今日可用：${dailyLeft} / 1 次`;
+        if (customQuotaDisplay) customQuotaDisplay.innerText = `⏳ 今日可用：${customLeft} / 3 次`;
+    }
+
     // === Firebase 狀態管理 ===
     const auth = window.firebaseAuth;
     const db = window.firebaseDb;
-    let currentUser = null;
     window.onAuthStateChanged(auth, (user) => {
         if (user) {
             currentUser = user;
@@ -53,12 +74,11 @@ document.addEventListener('DOMContentLoaded', () => {
             loginBtn.classList.remove('d-none');
             userProfile.classList.add('d-none');
         }
+        updateQuotaDisplay(); // 登入/登出後馬上更新額度畫面！
     });
     loginBtn.onclick = () => window.signInWithPopup(auth, new window.GoogleAuthProvider());
     logoutBtn.onclick = () => window.signOut(auth);
 
-    // === 👑 站長專屬後門與午夜重置額度 ===
-    const ADMIN_EMAIL = "sophiayeh2394www@gmail.com";
     function checkDrawLimit(isDaily) {
         if (currentUser && currentUser.email === ADMIN_EMAIL) return { allowed: true };
         const today = new Date().toLocaleDateString();
@@ -77,6 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentUser && currentUser.email === ADMIN_EMAIL) return;
         isDaily ? usageData.dailyCount += 1 : usageData.customCount += 1;
         localStorage.setItem('oracleUsage', JSON.stringify(usageData));
+        updateQuotaDisplay(); // 扣完額度馬上更新畫面
     }
 
     async function getAIInterpretation(question, cardName, position, musicGenre, isDaily, category) {
@@ -94,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // === 🌟 塔羅牌庫與百科字典 ===
+    // 塔羅牌庫
     const tarotCards = [
         { name: "0. 愚者 (The Fool)", image: "https://upload.wikimedia.org/wikipedia/commons/9/90/RWS_Tarot_00_Fool.jpg", details: { element: "風系", star: "天王星", keywords: "新的開始、冒險、天真、無限可能", upright: "踏上新旅程、不拘一格、充滿信心與好奇心。", reversed: "魯莽、逃避責任、過度天真導致失誤。" } },
         { name: "1. 魔術師 (The Magician)", image: "https://upload.wikimedia.org/wikipedia/commons/d/de/RWS_Tarot_01_Magician.jpg", details: { element: "風系", star: "水星", keywords: "創造力、溝通、自信、資源掌握", upright: "萬事俱備、展現才華、將想法化為現實。", reversed: "缺乏自信、溝通不良、濫用才能、騙局。" } },
@@ -126,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const isReversed = Math.random() < 0.5;
         const pos = isReversed ? "逆位" : "正位";
         const currentGenre = isDaily ? genreInput.value.trim() : "";
-        const cat = isDaily ? "綜合" : currentCategory; // 傳送分類給 AI
+        const cat = isDaily ? "綜合" : currentCategory;
 
         modalTitle.innerText = isDaily ? "🔮 每日神諭讀取中..." : `💬 正在編譯解答...`;
         modalBody.innerHTML = `<div class="text-center my-4"><div class="spinner-border text-info"></div><p class="mt-2 text-muted">正在與宇宙進行連線...</p></div>`;
@@ -169,7 +190,6 @@ document.addEventListener('DOMContentLoaded', () => {
             extraHtml += `<div class="mt-3 text-center" data-html2canvas-ignore="true"><a href="${ytLink}" target="_blank" class="btn btn-sm btn-outline-info rounded-pill px-4" style="text-decoration:none;">▶️ YouTube 搜尋：${songStr}</a></div>`;
         }
 
-        // 🌟 新增：打開抽屜的按鈕
         extraHtml += `
             <div class="mt-4 text-center" data-html2canvas-ignore="true">
                 <button id="open-drawer-btn" class="btn btn-sm btn-outline-warning rounded-pill px-4">📖 查看牌義詳解</button>
@@ -201,7 +221,6 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => document.getElementById('flip-target').classList.add('is-flipped'), 100);
         if (downloadBtn) downloadBtn.style.display = 'block';
 
-        // 🌟 綁定打開抽屜的邏輯，並塞入字典資料
         setTimeout(() => {
             const drawerBtn = document.getElementById('open-drawer-btn');
             if(drawerBtn) {
@@ -255,6 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderDeck(deckContainer, true);
     shuffleBtn.onclick = (e) => { e.preventDefault(); renderDeck(deckContainer, true); };
+    updateQuotaDisplay(); // 網頁剛載入時先更新一次額度畫面
 
     drawLotBtn.onclick = (e) => {
         e.preventDefault();
@@ -272,7 +292,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     historyBtn.onclick = async () => {
-        // (省略，維持原本正常邏輯)
         if (!currentUser) return;
         historyBody.innerHTML = '<div class="text-center my-4"><div class="spinner-border text-warning"></div></div>';
         const q = window.query(window.collection(db, "fortuneHistory"), window.where("uid", "==", currentUser.uid));
