@@ -45,3 +45,20 @@ body { background-color: var(--bg-color); color: var(--text-color); font-family:
     75% { transform: rotate(3deg) translateX(5px); }
 }
 .shuffling .deck-card { animation: shuffle 0.3s ease-in-out infinite; }
+/* 🌟 修復深色模式文字對比度，讓字變清楚！ */
+.dark-theme {
+    color: #f0f6fc !important; /* 整體文字變成亮白偏藍 */
+}
+
+.dark-theme .text-muted {
+    color: #a3b3c4 !important; /* 次要文字改成淺灰藍色，不再黑漆漆 */
+}
+
+.dark-theme .mystical-card {
+    color: #ffffff !important; /* 卡片內的文字強制純白 */
+}
+
+.dark-theme .p-3 {
+    color: #ffffff !important; /* 解牌文字強制純白 */
+    font-weight: 500; /* 讓字體稍微變粗一點點，更好讀 */
+}
