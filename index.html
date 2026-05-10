@@ -37,6 +37,7 @@
             <div class="col-md-5">
                 <div class="mystical-card p-4 text-center h-100 shadow">
                     <h4 class="mb-3 text-accent">今日塔羅神諭</h4>
+                    <p id="daily-quota-display" class="small text-warning fw-bold mb-2">⏳ 今日可用：1 / 1 次</p>
                     <p class="small text-muted mb-4">從下方牌陣中選取一張感應卡牌</p>
 
                     <button id="shuffle-btn" class="btn btn-sm btn-outline-secondary rounded-pill mb-4">重新洗牌 🔀</button>
@@ -48,7 +49,15 @@
             <div class="col-md-5">
                 <div class="mystical-card p-4 text-center h-100 shadow">
                     <h4 class="mb-3 text-accent">AI 靈魂診斷</h4>
-                    <p class="small text-muted mb-4">心中默念問題，讓宇宙為你解答</p>
+                    <p id="custom-quota-display" class="small text-warning fw-bold mb-2">⏳ 今日可用：3 / 3 次</p>
+                    <p class="small text-muted mb-3">心中默念問題，讓宇宙為你解答</p>
+
+                    <div class="d-flex justify-content-center gap-2 mb-3" id="category-group">
+                        <button class="btn btn-sm btn-info category-btn active" data-cat="綜合">🔮 綜合</button>
+                        <button class="btn btn-sm btn-outline-info category-btn" data-cat="感情">❤️ 感情</button>
+                        <button class="btn btn-sm btn-outline-info category-btn" data-cat="事業">💼 事業</button>
+                        <button class="btn btn-sm btn-outline-info category-btn" data-cat="財運">💰 財運</button>
+                    </div>
 
                     <input type="text" id="user-question" class="form-control mystical-input mb-4 py-2" placeholder="例如：期中專題會過嗎？晚餐吃什麼？">
 
@@ -89,6 +98,15 @@
                 <div class="modal-body" id="history-modal-body"></div>
             </div>
         </div>
+    </div>
+
+    <div class="offcanvas offcanvas-end mystical-card" tabindex="-1" id="cardDetailDrawer" style="width: 350px;">
+        <div class="offcanvas-header border-bottom border-secondary">
+            <h5 class="offcanvas-title text-accent">📖 牌義百科</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body text-start" id="drawer-content">
+            </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
