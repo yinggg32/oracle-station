@@ -175,12 +175,14 @@ p, span, div, h4, .modal-body, .text-muted {
     color: rgba(255, 255, 255, 0.6) !important;
 }
 
-/* 2. 點擊 (Focus) 的狀態：裡面變成純白，打字超清楚 */
-.mystical-input:focus {
-    background-color: rgba(255, 255, 255, 0.95) !important; /* 點下去裡面變成白底 */
-    color: #000000 !important; /* ⚠️ 背景變白了，字一定要變成黑的才看得到！ */
+/* 2. 點擊 (Focus) 的狀態：裡面變成純白，打字強制變黑 */
+.mystical-input:focus,
+input.mystical-input:focus {
+    background-color: #ffffff !important; /* 點下去變成純白底 */
+    color: #000000 !important; /* 強制純黑字體 */
+    -webkit-text-fill-color: #000000 !important; /* 🌟 破解瀏覽器鎖定，保證字一定是黑的 */
     border-color: var(--accent-color) !important;
-    box-shadow: 0 0 15px var(--glow-color) !important; /* 外圈亮藍色光暈 */
+    box-shadow: 0 0 15px var(--glow-color) !important;
     outline: none;
 }
 
