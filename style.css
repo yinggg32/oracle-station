@@ -1,118 +1,83 @@
-/* --- 妳原本超美的 CSS 風格與動畫 --- */
+/* --- 1. 基礎設定 (保留妳原本的配色) --- */
 body {
-    background-color: #161b22; /* 預設深色背景 */
-    color: #f0f6fc;
+    background-color: #fdfaf5; /* 預設淺色 */
+    color: #222222;
     font-family: 'Noto Serif TC', serif;
-    transition: background-color 0.3s, color 0.3s;
-    overflow-x: hidden;
+    transition: all 0.3s ease;
+    min-height: 100vh;
 }
 
-/* 🌟 深色/淺色模式文字顯靈核心 (這是我唯一留下的修復) */
-/* 深色模式 (預設) 文字顏色 */
-body.dark-theme p,
-body.dark-theme span,
-body.dark-theme div,
-body.dark-theme #modal-body {
+/* 深色模式變換 (配合妳的 JS) */
+body.dark-theme {
+    background-color: #161b22 !important;
     color: #f0f6fc !important;
 }
-body.dark-theme .text-muted {
-    color: #a3b3c4 !important;
-}
 
-/* 淺色模式 (強制變黑) 文字顏色 */
-body:not(.dark-theme) p,
-body:not(.dark-theme) span,
-body:not(.dark-theme) div,
-body:not(.dark-theme) #modal-body {
-    color: #222222 !important; /* 白底時強制純黑灰色 */
-}
-body:not(.dark-theme) .text-muted {
-    color: #555555 !important;
-}
-
-/* 保留原本的雜訊背景 */
-.noise-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: url('https://grainy-gradients.vercel.app/noise.svg');
-    opacity: 0.05; pointer-events: none; z-index: 9999;
-}
-
-/* 🌟 復原妳的高級暗金色標題，拒絕刺眼黃色！ */
-h1, h2, h3, h4, .mystical-title, .text-accent {
-    color: #b8860b !important; /* 妳原本高級的暗金色 */
-    font-weight: bold;
-}
-
-/* 復原妳超美的卡片樣式 */
-.mystical-card {
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: 20px;
-    border: 1px solid rgba(128, 128, 128, 0.2);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    transition: transform 0.3s ease;
-}
-
-/* 🌟 復原原本精緻小巧的塔羅牌尺寸 (就是這個！) */
+/* --- 2. 塔羅牌尺寸 (固定精緻小巧，絕對不准變大！) --- */
 .tarot-deck {
-    display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; padding: 20px;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 10px !important;
+    padding: 15px !important;
 }
+
 .deck-card, .card-container {
-    width: 80px;  /* 復原精緻小尺寸 */
-    height: 120px; /* 復原精緻小尺寸 */
-    cursor: pointer; position: relative; transition: transform 0.3s;
+    width: 70px !important;  /* 妳要的小尺寸 */
+    height: 110px !important;
+    cursor: pointer;
+    position: relative;
     border-radius: 8px;
+    flex-shrink: 0; /* 防止被擠壓 */
 }
 
-/* 保留原本的hover動畫 */
-.deck-card:hover {
-    transform: translateY(-10px) scale(1.05);
-    box-shadow: 0 0 15px #b8860b;
+/* --- 3. 模式切換時的文字顏色 (顯靈關鍵) --- */
+/* 當在深色模式時 */
+body.dark-theme .mystical-card,
+body.dark-theme .modal-content,
+body.dark-theme #modal-body,
+body.dark-theme p, body.dark-theme span {
+    color: #f0f6fc !important;
 }
 
-/* 復原妳超美的卡片動畫 */
-.deck-card {
-    background: linear-gradient(135deg, #2c3e50, #000000);
-    border: 2px solid #b8860b;
+/* 當在淺色模式時 (強制變深) */
+body:not(.dark-theme) .mystical-card,
+body:not(.dark-theme) .modal-content,
+body:not(.dark-theme) #modal-body,
+body:not(.dark-theme) p, body:not(.dark-theme) span {
+    color: #1a1a1a !important;
 }
+
+/* 標題顏色 (妳原本的高級金) */
+.text-accent, .mystical-title, h4 {
+    color: #b8860b !important;
+}
+
+/* --- 4. 妳原本的卡片與動畫樣式 --- */
+.mystical-card {
+    background-color: rgba(255, 255, 255, 0.7); /* 淺色時半透 */
+    border-radius: 15px;
+    border: 1px solid rgba(128, 128, 128, 0.2);
+    padding: 20px;
+}
+
+body.dark-theme .mystical-card {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* 翻牌動畫 */
+.card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s; transform-style: preserve-3d; }
 .card-inner.is-flipped { transform: rotateY(180deg); }
-.card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.8s; transform-style: preserve-3d; }
-.card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 8px; border: 2px solid #b8860b; overflow: hidden; }
-.card-front { background: linear-gradient(135deg, #1a1a1a, #434343); }
+.card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 8px; border: 1px solid #b8860b; overflow: hidden; }
+.card-front { background: linear-gradient(135deg, #2c3e50, #000000); }
 .card-back { background: white; transform: rotateY(180deg); }
 .card-back img { width: 100%; height: 100%; object-fit: cover; }
 
-/* 復原妳原本的按鈕樣式 */
-.btn-mystical {
-    background: linear-gradient(45deg, #6a11cb, #2575fc);
-    border: none; color: white; border-radius: 50px; padding: 8px 20px; font-weight: bold;
-}
-.btn-mystical:hover { filter: brightness(1.1); }
+/* 雜訊與按鈕 */
+.noise-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://grainy-gradients.vercel.app/noise.svg'); opacity: 0.05; pointer-events: none; z-index: 9999; }
+.btn-mystical { background: linear-gradient(45deg, #6a11cb, #2575fc); border: none; color: white !important; border-radius: 50px; padding: 8px 20px; font-weight: bold; }
+.mystical-input { background: rgba(255, 255, 255, 0.1); border: 1px solid #b8860b; border-radius: 50px; padding: 8px 15px; width: 100%; }
 
-/* 復原原本的輸入框樣式 */
-.mystical-input {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid #b8860b;
-    color: #f0f6fc;
-    border-radius: 50px;
-}
-
-/* 🌟 洗牌動畫也留著 */
-.shuffling .deck-card { animation: shuffle-anim 0.8s ease-in-out infinite; }
-@keyframes shuffle-anim {
-    0% { transform: translate(0, 0); }
-    50% { transform: translate(10px, -5px) rotate(2deg); }
-    100% { transform: translate(0, 0); }
-}
-
-/* 🌟 復原Modal對比度修正 */
-.modal-content {
-    background-color: #1c2128; border: 1px solid #b8860b; color: white; border-radius: 15px;
-}
-/* 淺色模式下的 Modal 字體修正 */
-body:not(.dark-theme) .modal-content {
-    background-color: #ffffff !important;
-}
-#modal-body .p-3.rounded {
-    background-color: rgba(184, 134, 11, 0.1) !important;
-    border-left: 5px solid #b8860b !important;
-}
+/* 洗牌動畫 */
+.shuffling .deck-card { animation: shuffle-anim 0.6s infinite; }
+@keyframes shuffle-anim { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(5px, -5px); } }
