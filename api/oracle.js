@@ -3,19 +3,22 @@ module.exports = async function handler(req, res) {
     if (!apiKey) return res.status(500).json({ error: "環境變數 GROQ_API_KEY 是空的！" });
 
     try {
-        const { question, cardName, position } = req.body;
+        const { question, cardName, position, musicGenre } = req.body;
 
-        // 🌟 全新 Prompt：溫暖的塔羅占卜師 + 專屬音樂 DJ
+        // 判斷使用者有沒有輸入想聽的曲風
+        const genreInstruction = musicGenre
+            ? `使用者指定想聽的曲風為：「${musicGenre}」。請務必推薦一首符合此曲風的真實流行歌曲。`
+            : `音樂風格不限，請根據解牌氛圍，自由推薦一首真實存在的 K-pop, J-pop, Hip-Hop, R&B 或搖滾等熱門好歌。`;
+
         const promptText = `
-        你是一位溫柔、像朋友般閒話家常的塔羅占卜師。
-        使用者問：「${question}」。抽中：「${cardName} (${position})」。
+        你是一位溫暖、像朋友般的塔羅占卜師。使用者問：「${question}」。抽中：「${cardName} (${position})」。
 
         請嚴格遵守以下規則：
-        1. 根據偉特塔羅牌的「真實牌義」來解讀，給予貼近生活、實用且溫暖的建議。
-        2. 語氣要自然、親切、像朋友聊天，絕對不要用生硬的專業術語。
-        3. 針對使用者的問題直接給解答，不要講「你好」、「我是占卜師」之類的廢話開場白。字數約 120 字。
-        4. 最後，請根據解牌的氛圍，擔任 DJ 推薦一首好聽的歌給他。可以優先考慮 R&B、Hip-Hop、City Pop 或是 TREASURE、Vaundy、The Kid LAROI 等風格的音樂，或是任何符合心境的流行樂。
-        5. 格式要求：先寫解牌內容，然後空一行，最後一行固定寫「🎵 推薦歌曲：[歌手] - [歌名]」。
+        1. 根據塔羅牌義給予貼近生活、實用的建議，語氣自然親切。
+        2. 如果問「晚餐吃什麼」等具體問題，請務必給出具體建議（如燒肉、和牛火鍋、壽司等），不要講廢話。
+        3. 字數約120字。不要講「你好」等開場白。
+        4. 音樂推薦：${genreInstruction} 絕對不可捏造不存在的歌曲。
+        5. 格式：先寫解牌，接著空一行，最後一行嚴格輸出「🎵 推薦歌曲：歌手 - 歌名」。
         `;
 
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -28,7 +31,7 @@ module.exports = async function handler(req, res) {
                 model: 'llama-3.1-8b-instant',
                 messages: [{ role: 'user', content: promptText }],
                 max_tokens: 250,
-                temperature: 0.7
+                temperature: 0.6 // 保持冷靜，避免亂編歌名
             })
         });
 

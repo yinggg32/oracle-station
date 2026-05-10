@@ -13,6 +13,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const historyBtn = document.getElementById('history-btn');
     const historyBody = document.getElementById('history-modal-body');
 
+    // 🌟 動態產生「音樂曲風」輸入框
+    if (!document.getElementById('music-genre-input')) {
+        userQuestionInput.insertAdjacentHTML('afterend', '<input type="text" id="music-genre-input" class="form-control mystical-input mt-2 mb-3" placeholder="🎵 想聽什麼曲風？(如: City Pop, Kpop, R&B... 選填)">');
+    }
+    const genreInput = document.getElementById('music-genre-input');
+
     const auth = window.firebaseAuth;
     const db = window.firebaseDb;
     let currentUser = null;
@@ -33,12 +39,13 @@ document.addEventListener('DOMContentLoaded', () => {
     loginBtn.onclick = () => window.signInWithPopup(auth, new window.GoogleAuthProvider());
     logoutBtn.onclick = () => window.signOut(auth);
 
-    async function getAIInterpretation(question, cardName, position) {
+    // 🌟 傳遞新的 musicGenre 參數給後端
+    async function getAIInterpretation(question, cardName, position, musicGenre) {
         try {
             const response = await fetch('/api/oracle', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ question, cardName, position })
+                body: JSON.stringify({ question, cardName, position, musicGenre })
             });
             const data = await response.json();
             if (data.error) throw new Error(data.error);
@@ -59,8 +66,8 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     const luckyStuff = {
-        items: ["TRUZ 玩偶", "底片相機", "熱拿鐵", "護唇膏", "降噪耳機"],
-        colors: ["午夜藍", "鼠尾草綠", "神秘紫", "奶茶色", "發光青"]
+        items: ["底片相機", "熱拿鐵", "護唇膏", "降噪耳機", "雙眼皮貼"],
+        colors: ["午夜藍", "鼠尾草綠", "神秘紫", "酒紅色", "發光青"]
     };
 
     const processDraw = async (q = "", isDaily = false) => {
@@ -68,22 +75,32 @@ document.addEventListener('DOMContentLoaded', () => {
         const isReversed = Math.random() < 0.5;
         const pos = isReversed ? "逆位" : "正位";
 
+        // 讀取使用者填寫的曲風 (每日運勢因為沒有填表，所以放空)
+        const currentGenre = isDaily ? "" : genreInput.value.trim();
+
         modalTitle.innerText = isDaily ? "🔮 每日神諭讀取中..." : `💬 正在為妳解答...`;
         modalBody.innerHTML = `<div class="spinner-border text-info my-4"></div>`;
 
-        let aiText = await getAIInterpretation(q || "今日運勢", c.name, pos);
+        // 🌟 把曲風變數傳給後端
+        let aiText = await getAIInterpretation(q || "今日運勢", c.name, pos, currentGenre);
 
-        // 將 AI 回傳的換行符號轉成 HTML 換行，讓排版更漂亮
-        aiText = aiText.replace(/\n/g, '<br>');
+        let readingText = aiText;
+        let songStr = "";
+        if (aiText.includes("🎵 推薦歌曲：")) {
+            const parts = aiText.split("🎵 推薦歌曲：");
+            readingText = parts[0].trim().replace(/\n/g, '<br>');
+            songStr = parts[1].trim().replace(/\*/g, '');
+        } else {
+            readingText = readingText.replace(/\n/g, '<br>');
+        }
 
         let extraHtml = "";
         let lItem = "", lColor = "";
 
-        // 只有每日運勢才顯示幸運物，問問題就保持畫面乾淨
         if (isDaily) {
             lItem = luckyStuff.items[Math.floor(Math.random() * luckyStuff.items.length)];
             lColor = luckyStuff.colors[Math.floor(Math.random() * luckyStuff.colors.length)];
-            extraHtml = `
+            extraHtml += `
                 <div class="mt-4 p-2 rounded" style="background: rgba(255,255,255,0.05); border: 1px dashed var(--accent-color);">
                     <div class="row g-2 small text-center align-items-center">
                         <div class="col-6 border-end border-secondary"><strong>幸運物</strong><br>${lItem}</div>
@@ -92,11 +109,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>`;
         }
 
+        if (songStr) {
+            const ytLink = `https://www.youtube.com/results?search_query=${encodeURIComponent(songStr)}`;
+            extraHtml += `
+                <div class="mt-3 text-center">
+                    <a href="${ytLink}" target="_blank" class="btn btn-sm btn-info rounded-pill shadow">▶️ 去 YouTube 聽：${songStr}</a>
+                </div>`;
+        }
+
         if (currentUser && !aiText.includes("❌")) {
             window.addDoc(window.collection(db, "fortuneHistory"), {
                 uid: currentUser.uid, question: q || "每日運勢", cardName: c.name, position: pos,
-                interpretation: aiText, luckyItem: lItem, luckyColor: lColor, timestamp: new Date()
-            });
+                interpretation: aiText, timestamp: new Date()
+            }).catch(e => console.error("Firebase 寫入失敗", e));
         }
 
         modalTitle.innerText = isDaily ? "🔮 今日塔羅神諭" : "💬 靈魂診斷結果";
@@ -106,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="card-back"><img src="${c.image}" style="${isReversed ? 'transform:rotate(180deg)' : ''}"></div></div></div>
             <h5 class="text-accent">${c.name} (${pos})</h5>
             <div class="p-3 rounded text-start mt-3 shadow-sm" style="background:rgba(88, 166, 255, 0.1); border-left: 4px solid var(--accent-color); font-size: 0.95rem; line-height: 1.6;">
-                ${aiText}
+                ${readingText}
             </div>
             ${extraHtml}
         `;
@@ -128,7 +153,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const tempContainer = document.getElementById('temp-deck-container');
                 if(tempContainer) tempContainer.innerHTML = '';
-                if(!isDaily) userQuestionInput.value = '';
+
+                // 🌟 抽完牌後，自動清空問題與曲風，準備下一次發問
+                if(!isDaily) {
+                    userQuestionInput.value = '';
+                    genreInput.value = '';
+                }
             };
             container.appendChild(card);
         }
@@ -136,9 +166,15 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     renderDeck(deckContainer, true);
-    shuffleBtn.onclick = () => renderDeck(deckContainer, true);
 
-    drawLotBtn.onclick = () => {
+    shuffleBtn.onclick = (e) => {
+        e.preventDefault();
+        renderDeck(deckContainer, true);
+    };
+
+    drawLotBtn.onclick = (e) => {
+        e.preventDefault();
+
         const q = userQuestionInput.value.trim();
         if(!q) { alert("請先輸入妳的困惑..."); return; }
 
@@ -174,5 +210,12 @@ document.addEventListener('DOMContentLoaded', () => {
         historyBody.innerHTML = html + '</ul>';
     };
 
-    themeToggleBtn.onclick = () => document.body.classList.toggle('light-theme');
+    themeToggleBtn.onclick = () => {
+        document.body.classList.toggle('light-theme');
+        if(document.body.classList.contains('light-theme')) {
+            themeToggleBtn.innerText = '切換深色星空 🌙';
+        } else {
+            themeToggleBtn.innerText = '切換明亮晨光 ☀️';
+        }
+    };
 });
