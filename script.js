@@ -1,5 +1,6 @@
+// script.js
 document.addEventListener('DOMContentLoaded', () => {
-    // 載入截圖套件
+    // 預載截圖工具
     if (!window.html2canvas) {
         const script = document.createElement('script');
         script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
@@ -48,7 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loginBtn.onclick = () => window.signInWithPopup(auth, new window.GoogleAuthProvider());
     logoutBtn.onclick = () => window.signOut(auth);
 
-    // 🌟 告訴後端現在是 isDaily 還是問問題
     async function getAIInterpretation(question, cardName, position, musicGenre, isDaily) {
         try {
             const response = await fetch('/api/oracle', {
@@ -80,34 +80,38 @@ document.addEventListener('DOMContentLoaded', () => {
         const pos = isReversed ? "逆位" : "正位";
         const currentGenre = isDaily ? genreInput.value.trim() : "";
 
-        modalTitle.innerText = isDaily ? "🔮 每日神諭讀取中..." : `💬 正在運算解答...`;
-        modalBody.innerHTML = `<div class="spinner-border text-info my-4"></div>`;
+        modalTitle.innerText = isDaily ? "🔮 每日神諭讀取中..." : `💬 正在編譯解答...`;
+        modalBody.innerHTML = `<div class="text-center my-4"><div class="spinner-border text-info"></div><p class="mt-2">正在與宇宙進行 Git Merge...</p></div>`;
 
-        // 傳送 isDaily 給後端
         let aiText = await getAIInterpretation(q || "今日運勢", c.name, pos, currentGenre, isDaily);
 
         let readingText = aiText;
         let songStr = "", luckyItem = "", luckyColor = "";
 
-        if (isDaily && aiText.includes("|")) {
-            const parts = aiText.split("|");
-            readingText = parts[0].trim().replace(/\n/g, '<br>');
-            parts.forEach(p => {
-                if (p.includes("🎵 推薦歌曲：")) songStr = p.replace("🎵 推薦歌曲：", "").replace(/\*/g, '').trim();
-                if (p.includes("🍀 幸運物：")) luckyItem = p.replace("🍀 幸運物：", "").replace(/\*/g, '').trim();
-                if (p.includes("✨ 幸運色：")) luckyColor = p.replace("✨ 幸運色：", "").replace(/\*/g, '').trim();
-            });
+        if (isDaily) {
+            const songMatch = aiText.match(/🎵\s*推薦歌曲[：:]\s*(.+)/);
+            const itemMatch = aiText.match(/🍀\s*幸運物[：:]\s*(.+)/);
+            const colorMatch = aiText.match(/✨\s*幸運色[：:]\s*(.+)/);
+
+            if (songMatch) songStr = songMatch[1].replace(/\*/g, '').trim();
+            if (itemMatch) luckyItem = itemMatch[1].replace(/\*/g, '').trim();
+            if (colorMatch) luckyColor = colorMatch[1].replace(/\*/g, '').trim();
+
+            readingText = aiText
+                .replace(/\|?🎵\s*推薦歌曲[：:].*/g, '')
+                .replace(/\|?🍀\s*幸運物[：:].*/g, '')
+                .replace(/\|?✨\s*幸運色[：:].*/g, '')
+                .trim()
+                .replace(/\n/g, '<br>');
         } else {
             readingText = aiText.replace(/\n/g, '<br>');
         }
 
         let extraHtml = "";
-
-        // 只有每日運勢才會產生這些額外 HTML
         if (isDaily && (luckyItem || luckyColor)) {
             extraHtml += `
-                <div class="mt-4 p-2 rounded" style="background: rgba(255,255,255,0.05); border: 1px dashed var(--accent-color);">
-                    <div class="row g-2 small text-center align-items-center">
+                <div class="mt-4 p-3 rounded" style="background: rgba(255,255,255,0.05); border: 1px dashed var(--accent-color); width: 100%;">
+                    <div class="row g-0 text-center">
                         <div class="col-6 border-end border-secondary"><strong>🍀 幸運物</strong><br>${luckyItem || '無'}</div>
                         <div class="col-6"><strong>✨ 幸運色</strong><br>${luckyColor || '無'}</div>
                     </div>
@@ -118,24 +122,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const ytLink = `https://www.youtube.com/results?search_query=${encodeURIComponent(songStr)}`;
             extraHtml += `
                 <div class="mt-3 text-center">
-                    <a href="${ytLink}" target="_blank" class="btn btn-sm btn-info rounded-pill shadow">▶️ 去 YouTube 聽：${songStr}</a>
+                    <a href="${ytLink}" target="_blank" class="btn btn-sm btn-info rounded-pill px-4">🎵 去 YouTube 搜尋：${songStr}</a>
                 </div>`;
-        }
-
-        if (currentUser && !aiText.includes("❌")) {
-            window.addDoc(window.collection(db, "fortuneHistory"), {
-                uid: currentUser.uid, question: q || "每日運勢", cardName: c.name, position: pos,
-                interpretation: readingText, timestamp: new Date()
-            }).catch(e => console.error("Firebase 寫入失敗", e));
         }
 
         modalTitle.innerText = isDaily ? "🔮 今日塔羅神諭" : "💬 靈魂診斷結果";
 
-        // 🌟 終極修復：把卡片跟文字「分開」，文字就不會被擠壓了！
-        // 🌟 圖片加上 crossorigin="anonymous" 突破截圖限制！
+        // 🌟 核心修復：確保 capture-area 撐開，下載按鈕只有一個且在最外面
         modalBody.innerHTML = `
-            <div id="capture-area" class="p-3" style="background: var(--modal-bg); border-radius: 15px;">
-                <div class="card-container mb-3">
+            <div id="capture-area" class="p-3" style="background: var(--modal-bg); width: 100%;">
+                <div class="card-container mb-3 mx-auto">
                     <div class="card-inner" id="flip-target">
                         <div class="card-front"></div>
                         <div class="card-back">
@@ -143,44 +139,33 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                 </div>
-                <h5 class="text-accent">${c.name} (${pos})</h5>
-                <div class="p-3 rounded text-start mt-3 shadow-sm" style="background:rgba(88, 166, 255, 0.1); border-left: 4px solid var(--accent-color); font-size: 0.95rem; line-height: 1.6;">
+                <h5 class="text-accent text-center mt-3">${c.name} (${pos})</h5>
+                <div class="p-3 rounded text-start mt-3 shadow-sm" style="background:rgba(88, 166, 255, 0.1); border-left: 4px solid var(--accent-color); line-height: 1.6; word-break: break-all;">
                     ${readingText}
                 </div>
                 ${extraHtml}
             </div>
-            <div class="mt-3 text-center border-top border-secondary pt-3">
-                <button id="download-result-btn" class="btn btn-sm btn-outline-secondary rounded-pill">下載結果 📸</button>
+            <div class="mt-4 text-center border-top border-secondary pt-3">
+                <button id="real-download-btn" class="btn btn-sm btn-outline-secondary rounded-pill px-4">下載今日神諭 📸</button>
             </div>
         `;
+
         setTimeout(() => document.getElementById('flip-target').classList.add('is-flipped'), 100);
 
-        // 🌟 下載截圖功能
+        // 🌟 下載按鈕點擊事件
         setTimeout(() => {
-            const dlBtn = document.getElementById('download-result-btn');
-            if (dlBtn) {
-                dlBtn.onclick = () => {
+            const btn = document.getElementById('real-download-btn');
+            if (btn) {
+                btn.onclick = () => {
                     const target = document.getElementById('capture-area');
-                    if (window.html2canvas) {
-                        dlBtn.innerText = "截圖處理中...";
-                        window.html2canvas(target, {
-                            backgroundColor: '#161b22',
-                            useCORS: true,
-                            allowTaint: true
-                        }).then(canvas => {
-                            const link = document.createElement('a');
-                            link.download = 'oracle_result.png';
-                            link.href = canvas.toDataURL('image/png');
-                            link.click();
-                            dlBtn.innerText = "下載結果 📸";
-                        }).catch(err => {
-                            console.error(err);
-                            alert("因瀏覽器圖片安全限制，截圖失敗 😭 建議直接使用手機/電腦內建截圖！");
-                            dlBtn.innerText = "下載結果 📸";
-                        });
-                    } else {
-                        alert("截圖套件載入中，請稍等幾秒後再試！");
-                    }
+                    btn.innerText = "正在截圖...";
+                    window.html2canvas(target, { backgroundColor: '#161b22', useCORS: true }).then(canvas => {
+                        const link = document.createElement('a');
+                        link.download = `Oracle_${Date.now()}.png`;
+                        link.href = canvas.toDataURL();
+                        link.click();
+                        btn.innerText = "下載今日神諭 📸";
+                    });
                 };
             }
         }, 500);
@@ -194,14 +179,11 @@ document.addEventListener('DOMContentLoaded', () => {
             card.className = 'deck-card';
             card.setAttribute('data-bs-toggle', 'modal');
             card.setAttribute('data-bs-target', '#resultModal');
-
             card.onclick = () => {
                 const q = isDaily ? "" : userQuestionInput.value.trim();
                 processDraw(q, isDaily);
-
-                const tempContainer = document.getElementById('temp-deck-container');
-                if(tempContainer) tempContainer.innerHTML = '';
-
+                const temp = document.getElementById('temp-deck-container');
+                if(temp) temp.innerHTML = '';
                 if(!isDaily) userQuestionInput.value = '';
             };
             container.appendChild(card);
@@ -210,56 +192,25 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     renderDeck(deckContainer, true);
-
-    shuffleBtn.onclick = (e) => {
-        e.preventDefault();
-        renderDeck(deckContainer, true);
-    };
+    shuffleBtn.onclick = (e) => { e.preventDefault(); renderDeck(deckContainer, true); };
 
     drawLotBtn.onclick = (e) => {
         e.preventDefault();
-
         const q = userQuestionInput.value.trim();
-        if(!q) { alert("請先輸入妳的困惑..."); return; }
-
-        let tempContainer = document.getElementById('temp-deck-container');
-        if (!tempContainer) {
-            tempContainer = document.createElement('div');
-            tempContainer.id = 'temp-deck-container';
-            tempContainer.className = 'mt-4';
-            drawLotBtn.parentElement.appendChild(tempContainer);
+        if(!q) return alert("請輸入妳的困惑...");
+        let temp = document.getElementById('temp-deck-container');
+        if (!temp) {
+            temp = document.createElement('div');
+            temp.id = 'temp-deck-container';
+            temp.className = 'mt-4 text-center';
+            drawLotBtn.parentElement.appendChild(temp);
         }
-
-        tempContainer.innerHTML = `<p class="small text-accent mb-2">宇宙已接收到訊息，請從下方選取一張感應卡牌：</p><div class="tarot-deck" id="temp-deck"></div>`;
+        temp.innerHTML = `<p class="small text-accent mb-2">宇宙已接收到訊息，請感應一張卡牌：</p><div class="tarot-deck" id="temp-deck"></div>`;
         renderDeck(document.getElementById('temp-deck'), false);
-    };
-
-    historyBtn.onclick = async () => {
-        if (!currentUser) return;
-        historyBody.innerHTML = '<div class="text-center my-4"><div class="spinner-border text-warning"></div></div>';
-        const q = window.query(window.collection(db, "fortuneHistory"), window.where("uid", "==", currentUser.uid));
-        const snap = await window.getDocs(q);
-        let records = [];
-        snap.forEach(doc => records.push(doc.data()));
-        records.sort((a, b) => b.timestamp.toMillis() - a.timestamp.toMillis());
-
-        let html = '<ul class="list-group list-group-flush">';
-        records.forEach(r => {
-            html += `<li class="list-group-item bg-transparent text-light border-secondary py-3">
-                <div class="small text-info">${r.timestamp.toDate().toLocaleString()}</div>
-                <div class="fw-bold text-accent">${r.cardName} (${r.position})</div>
-                <div class="small mt-1 opacity-75">${r.interpretation}</div>
-            </li>`;
-        });
-        historyBody.innerHTML = html + '</ul>';
     };
 
     themeToggleBtn.onclick = () => {
         document.body.classList.toggle('light-theme');
-        if(document.body.classList.contains('light-theme')) {
-            themeToggleBtn.innerText = '切換深色星空 🌙';
-        } else {
-            themeToggleBtn.innerText = '切換明亮晨光 ☀️';
-        }
+        themeToggleBtn.innerText = document.body.classList.contains('light-theme') ? '切換深色星空 🌙' : '切換明亮晨光 ☀️';
     };
 });

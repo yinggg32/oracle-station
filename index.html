@@ -3,120 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>命運中轉站 | Oracle's Decision Station</title>
+    <title>命運中轉站 - Oracle Station</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="dark-theme">
     <div class="noise-overlay"></div>
-    <div class="container py-5 content-wrapper">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <button id="theme-toggle" class="btn btn-outline-secondary btn-sm rounded-pill shadow-sm">切換明亮晨光 ☀️</button>
-            <div id="auth-section">
-                <button id="login-btn" class="btn btn-sm btn-outline-primary rounded-pill shadow-sm">登入解鎖運勢紀錄 🔮</button>
-                <div id="user-profile" class="d-none align-items-center">
-                    <span id="user-name" class="me-3 small fw-bold" style="color: var(--accent-color);"></span>
-                    <button id="history-btn" class="btn btn-sm btn-outline-warning rounded-pill me-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#historyModal">命運日曆 📜</button>
-                    <button id="logout-btn" class="btn btn-sm btn-outline-danger rounded-pill shadow-sm">登出</button>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-transparent pt-3 px-4">
+        <div class="container-fluid">
+            <button id="theme-toggle" class="btn btn-outline-secondary rounded-pill btn-sm">切換明亮晨光 ☀️</button>
+
+            <div class="d-flex align-items-center ms-auto">
+                <button id="login-btn" class="btn btn-mystical btn-sm">登入解鎖運勢紀錄 🔮</button>
+                <div id="user-profile" class="d-none d-flex align-items-center">
+                    <span id="user-name" class="me-3 small text-muted"></span>
+                    <button id="history-btn" class="btn btn-outline-info btn-sm rounded-pill me-2" data-bs-toggle="modal" data-bs-target="#historyModal">命運日曆 📜</button>
+                    <button id="logout-btn" class="btn btn-outline-danger btn-sm rounded-pill">登出</button>
                 </div>
             </div>
         </div>
-        <header class="text-center mb-5">
+    </nav>
+
+    <div class="container mt-5">
+        <div class="text-center mb-5">
             <h1 class="display-4 fw-bold mystical-title">命運中轉站</h1>
-            <p class="lead">宇宙的處理器正在運轉，請誠心發問</p>
-        </header>
-        <div class="row g-4">
-            <div class="col-md-6">
-                <div class="card mystical-card h-100 text-center p-4 shadow">
-                    <div class="card-body">
-                        <h2 class="card-title mb-4">今日塔羅神諭</h2>
-                        <p class="opacity-75 mb-3">從下方牌陣中選取一張感應卡牌</p>
-                        <button id="shuffle-btn" class="btn btn-sm btn-outline-secondary mb-3 rounded-pill">重新洗牌 🔀</button>
-                        <div class="tarot-deck-wrapper mb-4">
-                            <div class="tarot-deck" id="tarot-deck-container"></div>
-                        </div>
-                    </div>
+            <p class="lead text-muted">宇宙的處理器正在運轉，請誠心發問</p>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-5">
+                <div class="mystical-card p-4 text-center h-100 shadow">
+                    <h4 class="mb-3 text-accent">今日塔羅神諭</h4>
+                    <p class="small text-muted mb-4">從下方牌陣中選取一張感應卡牌</p>
+
+                    <button id="shuffle-btn" class="btn btn-sm btn-outline-secondary rounded-pill mb-4">重新洗牌 🔀</button>
+
+                    <div id="tarot-deck-container" class="tarot-deck"></div>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="card mystical-card h-100 text-center p-4 shadow">
-                    <div class="card-body">
-                        <h2 class="card-title mb-4">AI 靈魂診斷</h2>
-                        <input type="text" id="user-question" class="form-control mystical-input mb-4" placeholder="問問題 或 輸入兩星座">
-                        <button id="draw-lot-btn" class="btn btn-mystical w-100" data-bs-toggle="modal" data-bs-target="#resultModal">連結宇宙運算</button>
+
+            <div class="col-md-5">
+                <div class="mystical-card p-4 text-center h-100 shadow">
+                    <h4 class="mb-3 text-accent">AI 靈魂診斷</h4>
+                    <p class="small text-muted mb-4">心中默念問題，讓宇宙為你解答</p>
+
+                    <input type="text" id="user-question" class="form-control mystical-input mb-4 py-2" placeholder="例如：期中專題會過嗎？晚餐吃什麼？">
+
+                    <button id="draw-lot-btn" class="btn btn-mystical w-100">連結宇宙運算 ✨</button>
+
                     </div>
-                </div>
             </div>
         </div>
-        <footer class="text-center mt-5 disclaimer">
-            <p>※ 本站由睡眠不足的開發者於半夜強行維護，內含 99% 玄學與 1% 的 Bug ※</p>
-            <p class="small opacity-50">&copy; 2026 Oracle Station | NKNU SEM</p>
-        </footer>
     </div>
 
-    <!-- Modal 區域 -->
+    <footer class="text-center mt-5 pb-4 small text-muted">
+        <p>※ 本站由睡眠不足的開發者於半夜強行維護，內含 99% 玄學與 1% 的 Bug ※</p>
+        <p>© 2026 Oracle Station | NKNU SEM</p>
+    </footer>
+
     <div class="modal fade" id="resultModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div id="capture-area" class="modal-content mystical-modal p-2 shadow-lg">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title w-100 text-center fw-bold" id="modal-title">讀取中...</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-content mystical-card">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title text-accent" id="modal-title">宇宙連接中...</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body text-center" id="modal-body"></div>
-                <div class="modal-footer border-0 justify-content-center">
-                    <button id="download-btn" class="btn btn-sm btn-outline-info rounded-pill me-2">下載結果 📸</button>
-                </div>
             </div>
         </div>
     </div>
 
     <div class="modal fade" id="historyModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content mystical-modal p-2 shadow-lg">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title w-100 text-center fw-bold text-warning">📜 你的命運日曆</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-content mystical-card">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title text-accent">📜 你的命運日曆</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body text-start" id="history-modal-body"></div>
+                <div class="modal-body" id="history-modal-body"></div>
             </div>
         </div>
     </div>
 
-    <script type="importmap">
-    { "imports": { "@google/generative-ai": "https://esm.run/@google/generative-ai" } }
-    </script>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-        import { GoogleGenerativeAI } from "@google/generative-ai";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyCmXEqjjpvPMvb3ms3xEKiV9bVd5bgCzUg",
-            authDomain: "oracle-station-a187f.firebaseapp.com",
-            projectId: "oracle-station-a187f",
-            storageBucket: "oracle-station-a187f.firebasestorage.app",
-            messagingSenderId: "819786930760",
-            appId: "1:819786930760:web:db16c7486a9d65b6d8567d"
-        };
-        const app = initializeApp(firebaseConfig);
-        window.firebaseAuth = getAuth(app);
-        window.firebaseDb = getFirestore(app);
-        window.signInWithPopup = signInWithPopup;
-        window.GoogleAuthProvider = GoogleAuthProvider;
-        window.signOut = signOut;
-        window.onAuthStateChanged = onAuthStateChanged;
-        window.collection = collection;
-        window.addDoc = addDoc;
-        window.getDocs = getDocs;
-        window.query = query;
-        window.where = where;
-        window.orderBy = orderBy;
-        window.GoogleGenerativeAI = GoogleGenerativeAI;
-    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+    <script>
+        // ⚠️ 采瑩注意：請將下方替換成妳自己的 Firebase 設定！
+        const firebaseConfig = {
+            apiKey: "請貼上妳的apiKey",
+            authDomain: "請貼上妳的authDomain",
+            projectId: "請貼上妳的projectId",
+            storageBucket: "請貼上妳的storageBucket",
+            messagingSenderId: "請貼上妳的messagingSenderId",
+            appId: "請貼上妳的appId"
+        };
+        firebase.initializeApp(firebaseConfig);
+        window.firebaseDb = firebase.firestore();
+        window.firebaseAuth = firebase.auth();
+
+        // Firebase 橋接函數 (讓 script.js 能夠無縫使用)
+        window.collection = (db, name) => db.collection(name);
+        window.addDoc = (col, data) => col.add(data);
+        window.query = (col, ...args) => {
+            let q = col;
+            if(args.length > 0 && args[0].type === 'where') {
+                q = q.where(args[0].field, args[0].op, args[0].val);
+            }
+            return q;
+        };
+        window.where = (field, op, val) => ({type: 'where', field, op, val});
+        window.getDocs = (q) => q.get();
+        window.signInWithPopup = (auth, provider) => auth.signInWithPopup(provider);
+        window.signOut = (auth) => auth.signOut();
+        window.GoogleAuthProvider = firebase.auth.GoogleAuthProvider;
+    </script>
+
     <script src="script.js"></script>
 </body>
 </html>
