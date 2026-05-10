@@ -150,3 +150,14 @@ p, span, div, h4, .modal-body, .text-muted {
     0%, 100% { transform: translate(0, 0); }
     50% { transform: translate(5px, -5px) rotate(2deg); }
 }
+/* 讓解牌文字更有層次感 */
+#modal-body .p-3.rounded {
+    white-space: pre-line; /* 🌟 讓 AI 的換行能正確顯示 */
+    line-height: 1.8;
+}
+
+/* 讓 [牌面解釋] 這種標題稍微發光 */
+#modal-body .p-3.rounded b,
+#modal-body .p-3.rounded strong {
+    color: var(--accent-color) !important;
+}

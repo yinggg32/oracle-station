@@ -5,37 +5,35 @@ module.exports = async function handler(req, res) {
     try {
         const { question, cardName, position, musicGenre, isDaily } = req.body;
 
-        let formatInstruction = "";
+        // 🌟 核心公式：定義統一的輸出結構
+        let structure = `
+        [牌面解釋]
+        (請先針對 "${cardName} ${position}" 的牌義結合問題 "${question}" 進行約 50 字的深度解析)
+
+        [具體建議]
+        1. (第一條具體行動建議)
+        2. (第二條具體行動建議)
+        3. (第三條具體行動建議)
+        `;
 
         if (isDaily) {
-            const genreText = musicGenre
-                ? `想聽「${musicGenre}」曲風，請推薦一首【真實存在、在 Spotify 上能找到】的知名歌曲。`
-                : `請推薦一首【真實存在且知名】的流行好歌（例如 R&B, Hip-Hop, City Pop, K-pop，或者像是 Mac Miller, Post Malone, Joji, TREASURE, Vaundy, Drake 等真實歌手的熱門歌曲）。`;
-
-            formatInstruction = `
-            【嚴格格式要求】
-            請你「必須」完全依照下方的範本輸出，絕對不可以增加開場白。
-            ⚠️ 警告：「推薦歌曲」必須是地球上真實存在的流行音樂，絕對禁止捏造不存在的歌名，也不准把中國古詩當作歌名！
-
-            (在這裡寫出你的具體解牌與行動建議，大約100字)
-            🎵 推薦歌曲：真實歌手 - 真實歌名
+            const genreText = musicGenre ? `想聽「${musicGenre}」曲風` : `推薦 R&B, Hip-Hop 或 City Pop`;
+            structure += `
+            🎵 推薦歌曲：歌手 - 歌名
             🍀 幸運物：具體物品
             ✨ 幸運色：顏色
-            `;
-        } else {
-            formatInstruction = `
-            【嚴格格式要求】
-            只需要給出具體的解牌與行動建議即可，【絕對不要】提供推薦歌曲、幸運物或幸運色，也不要有開場白。
             `;
         }
 
         const promptText = `
-        你是一位敏銳、直言不諱的塔羅占卜師。使用者問：「${question}」。抽中：「${cardName} (${position})」。
-
+        你是一位敏銳、直言不諱的塔羅占卜師。
         【嚴格規則】
-        1. 針對問題給予「具體、切實的行動建議」(如具體食物名稱、實際行動)。
-        2. 絕對【不可】給「尋找內心平靜」、「順其自然」這種空泛的廢話！
-        ${formatInstruction}
+        1. 你必須「完全依照」下方的結構輸出，絕對禁止任何開場白（例如：你好、這張牌代表...）。
+        2. 建議內容必須是具體的行為（如：去吃火鍋、找朋友聊天、整理書桌），禁止給心靈雞湯。
+        3. 推薦歌曲必須是【真實存在】且能在 YouTube 搜尋到的。
+
+        【輸出結構範本】
+        ${structure}
         `;
 
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -44,8 +42,8 @@ module.exports = async function handler(req, res) {
             body: JSON.stringify({
                 model: 'llama-3.1-8b-instant',
                 messages: [{ role: 'user', content: promptText }],
-                max_tokens: 300,
-                temperature: 0.5 // 稍微降溫，鎖住它的幻覺，不讓它再通靈發明歌曲
+                max_tokens: 500,
+                temperature: 0.4 // 🌟 調低溫度，讓格式更穩定，減少 AI 亂發揮的機率
             })
         });
 
