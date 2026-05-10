@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // === DOM 元素綁定 ===
     const themeToggleBtn = document.getElementById('theme-toggle');
     const drawLotBtn = document.getElementById('draw-lot-btn');
     const shuffleBtn = document.getElementById('shuffle-btn');
@@ -12,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const userNameDisplay = document.getElementById('user-name');
     const historyBtn = document.getElementById('history-btn');
     const historyBody = document.getElementById('history-modal-body');
-    const downloadBtn = document.getElementById('download-btn'); // 綁定 HTML 裡的下載按鈕
+    const downloadBtn = document.getElementById('download-btn');
 
     // 移除不必要的彈窗觸發，改由 JS 控制
     drawLotBtn.removeAttribute('data-bs-toggle');
@@ -24,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const genreInput = document.getElementById('music-genre-input');
 
+    // === Firebase 狀態管理 ===
     const auth = window.firebaseAuth;
     const db = window.firebaseDb;
     let currentUser = null;
@@ -44,6 +46,29 @@ document.addEventListener('DOMContentLoaded', () => {
     loginBtn.onclick = () => window.signInWithPopup(auth, new window.GoogleAuthProvider());
     logoutBtn.onclick = () => window.signOut(auth);
 
+    // === 👑 站長專屬後門與每日限制設定 ===
+    const ADMIN_EMAIL = "sophiayeh2394www@gmail.com";
+    const DAILY_COOLDOWN = 24 * 60 * 60 * 1000; // 24 小時的毫秒數
+
+    function checkCanDraw() {
+        // 1. 如果是站長登入，直接開啟無敵模式！
+        if (currentUser && currentUser.email === ADMIN_EMAIL) {
+            console.log("👑 站長後門已啟動：無視冷卻時間");
+            return { allowed: true };
+        }
+
+        // 2. 一般使用者的冷卻檢查 (使用 localStorage)
+        const lastDraw = localStorage.getItem('lastTarotDraw');
+        const now = Date.now();
+        if (lastDraw && (now - lastDraw < DAILY_COOLDOWN)) {
+            const remainingMs = DAILY_COOLDOWN - (now - lastDraw);
+            return { allowed: false, remaining: remainingMs };
+        }
+
+        return { allowed: true };
+    }
+
+    // === API 呼叫功能 ===
     async function getAIInterpretation(question, cardName, position, musicGenre, isDaily) {
         try {
             const response = await fetch('/api/oracle', {
@@ -59,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 滿血復活！完整的 22 張大阿爾克那塔羅牌
+    // === 塔羅牌庫 ===
     const tarotCards = [
         { name: "0. 愚者 (The Fool)", image: "https://upload.wikimedia.org/wikipedia/commons/9/90/RWS_Tarot_00_Fool.jpg" },
         { name: "1. 魔術師 (The Magician)", image: "https://upload.wikimedia.org/wikipedia/commons/d/de/RWS_Tarot_01_Magician.jpg" },
@@ -85,6 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "21. 世界 (The World)", image: "https://upload.wikimedia.org/wikipedia/commons/f/ff/RWS_Tarot_21_World.jpg" }
     ];
 
+    // === 核心抽牌與畫面渲染邏輯 ===
     const processDraw = async (q = "", isDaily = false) => {
         const c = tarotCards[Math.floor(Math.random() * tarotCards.length)];
         const isReversed = Math.random() < 0.5;
@@ -94,11 +120,9 @@ document.addEventListener('DOMContentLoaded', () => {
         modalTitle.innerText = isDaily ? "🔮 每日神諭讀取中..." : `💬 正在編譯解答...`;
         modalBody.innerHTML = `<div class="text-center my-4"><div class="spinner-border text-info"></div><p class="mt-2 text-muted">正在與宇宙進行連線...</p></div>`;
 
-        // 🌟 修正：使用 getOrCreateInstance 防止 Modal 彈窗背景卡住變黑
         const resultModal = window.bootstrap.Modal.getOrCreateInstance(document.getElementById('resultModal'));
         resultModal.show();
 
-        // 確保下載按鈕在載入時隱藏，解析完再出現
         if (downloadBtn) downloadBtn.style.display = 'none';
 
         let aiText = await getAIInterpretation(q || "今日運勢", c.name, pos, currentGenre, isDaily);
@@ -106,7 +130,6 @@ document.addEventListener('DOMContentLoaded', () => {
         let readingText = aiText;
         let songStr = "", luckyItem = "", luckyColor = "";
 
-        // 防彈版 Regex 解析
         if (isDaily) {
             const songMatch = aiText.match(/🎵\s*推薦歌曲[：:]\s*(.+)/);
             const itemMatch = aiText.match(/🍀\s*幸運物[：:]\s*(.+)/);
@@ -139,7 +162,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (isDaily && songStr) {
             const ytLink = `https://www.youtube.com/results?search_query=${encodeURIComponent(songStr)}`;
-            // 加上 data-html2canvas-ignore，讓這個按鈕不會出現在下載的照片裡
             extraHtml += `
                 <div class="mt-3 text-center" data-html2canvas-ignore="true">
                     <a href="${ytLink}" target="_blank" class="btn btn-sm btn-outline-info rounded-pill px-4" style="text-decoration:none;">▶️ YouTube 搜尋：${songStr}</a>
@@ -155,7 +177,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         modalTitle.innerText = isDaily ? "🔮 今日塔羅神諭" : "💬 靈魂診斷結果";
 
-        // 🌟 這裡只塞內容，不再重新建立 capture-area，完美結合 HTML
         modalBody.innerHTML = `
             <div class="card-container mb-3 mx-auto">
                 <div class="card-inner" id="flip-target">
@@ -174,10 +195,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         setTimeout(() => document.getElementById('flip-target').classList.add('is-flipped'), 100);
 
-        // 解析完畢，顯示拍照按鈕
         if (downloadBtn) downloadBtn.style.display = 'block';
     };
 
+    // === 發牌與權限檢查 ===
     const renderDeck = (container, isDaily) => {
         container.innerHTML = '';
         container.classList.add('shuffling');
@@ -185,6 +206,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = document.createElement('div');
             card.className = 'deck-card';
             card.onclick = () => {
+                // 🌟 抽牌前檢查權限！
+                const limit = checkCanDraw();
+                if (!limit.allowed) {
+                    const hours = Math.floor(limit.remaining / (1000 * 60 * 60));
+                    const minutes = Math.floor((limit.remaining % (1000 * 60 * 60)) / (1000 * 60));
+                    alert(`⏳ 靈魂需要休息...\n宇宙能量冷卻中，請於 ${hours} 小時 ${minutes} 分鐘後再嘗試連線。`);
+                    return;
+                }
+
+                // 通過檢查，記錄這次抽牌的時間
+                localStorage.setItem('lastTarotDraw', Date.now());
+
                 const q = isDaily ? "" : userQuestionInput.value.trim();
                 processDraw(q, isDaily);
                 const temp = document.getElementById('temp-deck-container');
@@ -196,9 +229,11 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => container.classList.remove('shuffling'), 800);
     };
 
+    // 初始化左側牌陣
     renderDeck(deckContainer, true);
     shuffleBtn.onclick = (e) => { e.preventDefault(); renderDeck(deckContainer, true); };
 
+    // 右側抽牌按鈕
     drawLotBtn.onclick = (e) => {
         e.preventDefault();
         const q = userQuestionInput.value.trim();
@@ -214,6 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderDeck(document.getElementById('temp-deck'), false);
     };
 
+    // 歷史紀錄
     historyBtn.onclick = async () => {
         if (!currentUser) return;
         historyBody.innerHTML = '<div class="text-center my-4"><div class="spinner-border text-warning"></div></div>';
@@ -234,12 +270,13 @@ document.addEventListener('DOMContentLoaded', () => {
         historyBody.innerHTML = html + '</ul>';
     };
 
+    // 主題切換
     themeToggleBtn.onclick = () => {
         document.body.classList.toggle('light-theme');
         themeToggleBtn.innerText = document.body.classList.contains('light-theme') ? '切換深色星空 🌙' : '切換明亮晨光 ☀️';
     };
 
-    // === 📸 拍立得沖洗功能 (結合 HTML 的按鈕) ===
+    // 📸 拍立得沖洗功能
     if (downloadBtn) {
         downloadBtn.onclick = () => {
             const captureArea = document.getElementById('capture-area');
