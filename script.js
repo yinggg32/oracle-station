@@ -16,12 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const dailyQuotaDisplay = document.getElementById('daily-quota-display');
     const customQuotaDisplay = document.getElementById('custom-quota-display');
 
-    if (!document.getElementById('music-genre-input')) {
-        deckContainer.insertAdjacentHTML('beforebegin', '<div class="d-flex justify-content-center"><input type="text" id="music-genre-input" class="form-control mystical-input mt-3 mb-2" style="max-width: 250px;" placeholder="🎵 想聽什麼曲風？(選填)"></div>');
-    }
-    const genreInput = document.getElementById('music-genre-input');
-
-    // === 🌟 分類與心情按鈕邏輯 ===
+    // === 分類、心情、音樂按鈕邏輯 ===
     let currentCategory = "綜合";
     const categoryBtns = document.querySelectorAll('.category-btn');
     categoryBtns.forEach(btn => {
@@ -39,6 +34,17 @@ document.addEventListener('DOMContentLoaded', () => {
             moodBtns.forEach(b => b.classList.remove('active'));
             e.target.classList.add('active');
             currentMood = e.target.dataset.mood;
+        };
+    });
+
+    // 🌟 新增：曲風按鈕綁定
+    let currentMusicGenre = "全部";
+    const musicBtns = document.querySelectorAll('.music-btn');
+    musicBtns.forEach(btn => {
+        btn.onclick = (e) => {
+            musicBtns.forEach(b => { b.classList.remove('active', 'btn-info'); b.classList.add('btn-outline-info'); });
+            e.target.classList.remove('btn-outline-info'); e.target.classList.add('active', 'btn-info');
+            currentMusicGenre = e.target.dataset.genre;
         };
     });
 
@@ -144,8 +150,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const c = tarotCards[Math.floor(Math.random() * tarotCards.length)];
         const isReversed = Math.random() < 0.5;
         const pos = isReversed ? "逆位" : "正位";
-        const currentGenre = isDaily ? genreInput.value.trim() : "";
         const cat = isDaily ? "綜合" : currentCategory;
+
+        // 🌟 改用我們設定的按鈕，傳給後端
+        const reqMusicGenre = isDaily ? currentMusicGenre : "";
 
         modalTitle.innerText = isDaily ? "🔮 每日神諭讀取中..." : `💬 正在編譯解答...`;
         modalBody.innerHTML = `<div class="text-center my-4"><div class="spinner-border text-info"></div><p class="mt-2 text-muted">正在與宇宙進行連線...</p></div>`;
@@ -154,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resultModal.show();
         if (downloadBtn) downloadBtn.style.display = 'none';
 
-        let aiText = await getAIInterpretation(q || "今日運勢", c.name, pos, currentGenre, isDaily, cat);
+        let aiText = await getAIInterpretation(q || "今日運勢", c.name, pos, reqMusicGenre, isDaily, cat);
 
         let readingText = aiText;
         let songStr = "", luckyItem = "", luckyColor = "";
@@ -184,7 +192,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>`;
         }
 
-        // 🌟 新增：明確顯示歌名，並使用正確的 Spotify 搜尋連結
         if (isDaily && songStr) {
             const ytLink = `https://www.youtube.com/results?search_query=${encodeURIComponent(songStr)}`;
             const appleLink = `https://music.apple.com/tw/search?term=${encodeURIComponent(songStr)}`;
@@ -207,7 +214,6 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        // 🌟 儲存 Firebase 時，把選擇的心情存進去！
         if (currentUser && !aiText.includes("❌")) {
             window.addDoc(window.collection(db, "fortuneHistory"), {
                 uid: currentUser.uid, question: q || "每日運勢", cardName: c.name, position: pos, interpretation: readingText, timestamp: new Date(),
@@ -313,7 +319,6 @@ document.addEventListener('DOMContentLoaded', () => {
         snap.forEach(doc => records.push(doc.data()));
         records.sort((a, b) => b.timestamp.toMillis() - a.timestamp.toMillis());
 
-        // 🌟 把日期與對應的心情整理起來
         const recordedDays = new Map();
         records.forEach(r => {
             const d = r.timestamp.toDate();
@@ -353,7 +358,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (hasRecord) {
                 dayStyle += " background: var(--accent-color); color: #000; font-weight: bold; box-shadow: 0 0 8px rgba(212, 175, 55, 0.6);";
                 if (recordMood) {
-                    innerHtml = recordMood; // 🌟 如果有心情，用笑臉取代數字！
+                    innerHtml = recordMood;
                     dayStyle += " font-size: 1.1rem;";
                 }
             } else if (isToday) {

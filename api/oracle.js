@@ -12,11 +12,17 @@ module.exports = async function handler(req, res) {
         if (isDaily) {
             toneInstruction = "你是一位風格敏銳、節奏明快的塔羅占卜師。";
             explanationInstruction = "直接寫出約 50 字點到為止的今日運勢提點。";
-            const genreQuery = musicGenre ? `，且曲風為「${musicGenre}」` : `，請優先推薦具質感的流行好歌`;
 
-            // 🌟 加入防重複亂碼與強力指令，保證每次推薦的歌都不一樣
+            // 🌟 如果使用者選了「全部」，就從預設的流行曲風找；如果有指定，就強制找那個曲風
+            let genreQuery = "";
+            if (musicGenre && musicGenre !== "全部") {
+                genreQuery = `，且曲風必須是「${musicGenre}」`;
+            } else {
+                genreQuery = `，請優先推薦 R&B、Hip-Hop、City Pop 或 K-pop 等具質感的流行好歌`;
+            }
+
             extraDaily = `
-            🎵 推薦歌曲：請根據「${cardName}」這張牌的意境${genreQuery}，推薦一首完全符合此能量且【真實存在】的歌曲（絕對不能是AI生成的假歌）。為了避免重複，請隨機推薦一首具備獨特品味的隱藏好歌（不要一直推薦最主流的那幾首）。格式：歌手 - 歌名 (當前隨機亂碼：${Date.now()})
+            🎵 推薦歌曲：請根據「${cardName}」這張牌的意境${genreQuery}，推薦一首完全符合此能量且【真實存在】的歌曲（絕對不能是AI生成的假歌）。格式：歌手 - 歌名
             🍀 幸運物：具體物品
             ✨ 幸運色：顏色
             `;
@@ -47,6 +53,10 @@ module.exports = async function handler(req, res) {
         1. 第一條具體建議
         2. 第二條具體建議
         3. 第三條具體建議${extraDaily}
+
+        [系統隱藏指令]
+        本次防重複亂數種子：${Date.now()}
+        請確保本次推薦的歌曲與之前不同，請挖掘較少人知道的隱藏好歌。輸出時【絕對不要】印出亂數種子或任何額外的括號文字。
         `;
 
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -56,8 +66,7 @@ module.exports = async function handler(req, res) {
                 model: 'llama-3.1-8b-instant',
                 messages: [{ role: 'user', content: promptText }],
                 max_tokens: 600,
-                // 🌟 溫度調高至 0.8，讓 AI 的選歌更有變化和創意
-                temperature: 0.8
+                temperature: 0.8 // 🌟 調高溫度讓歌單不重複
             })
         });
 
