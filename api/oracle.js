@@ -19,7 +19,6 @@ module.exports = async function handler(req, res) {
             ✨ 幸運色：顏色
             `;
         } else {
-            // 🌟 防呆：會判斷問題大小的智慧型 AI
             toneInstruction = "你是一位充滿智慧、幽默且懂得「看場合說話」的塔羅占卜師。";
             explanationInstruction = `
             【重要判斷】：請先分析使用者的問題類型：

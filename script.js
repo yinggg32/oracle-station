@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const downloadBtn = document.getElementById('download-btn');
     const dailyQuotaDisplay = document.getElementById('daily-quota-display');
     const customQuotaDisplay = document.getElementById('custom-quota-display');
-    let chartInstance = null; // 圖表實例
 
     if (!document.getElementById('music-genre-input')) {
         deckContainer.insertAdjacentHTML('beforebegin', '<div class="d-flex justify-content-center"><input type="text" id="music-genre-input" class="form-control mystical-input mt-3 mb-2" style="max-width: 250px;" placeholder="🎵 想聽什麼曲風？(選填)"></div>');
@@ -37,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
 
-    // === Firebase 狀態管理 ===
+    // === Firebase 狀態與額度管理 ===
     const auth = window.firebaseAuth;
     const db = window.firebaseDb;
     let currentUser = null;
@@ -77,7 +76,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loginBtn.onclick = () => window.signInWithPopup(auth, new window.GoogleAuthProvider());
     logoutBtn.onclick = () => window.signOut(auth);
 
-    // === 額度檢查 ===
     function checkDrawLimit(isDaily) {
         if (currentUser && currentUser.email === ADMIN_EMAIL) return { allowed: true };
         const today = new Date().toLocaleDateString();
@@ -184,18 +182,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>`;
         }
 
-        // 🌟 Apple Music + YouTube 雙平台音樂按鈕！
+        // 🌟 Apple Music + Spotify + YouTube 滿血平台！
         if (isDaily && songStr) {
             const ytLink = `https://www.youtube.com/results?search_query=${encodeURIComponent(songStr)}`;
             const appleLink = `https://music.apple.com/tw/search?term=${encodeURIComponent(songStr)}`;
+            const spotifyLink = `https://open.spotify.com/search/${encodeURIComponent(songStr)}`;
+
             extraHtml += `
-            <div class="mt-3 text-center d-flex justify-content-center gap-2" data-html2canvas-ignore="true">
+            <div class="mt-3 text-center d-flex flex-wrap justify-content-center gap-2" data-html2canvas-ignore="true">
                 <a href="${appleLink}" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-3" style="text-decoration:none;">🎵 Apple Music</a>
+                <a href="${spotifyLink}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill px-3" style="text-decoration:none;">🎧 Spotify</a>
                 <a href="${ytLink}" target="_blank" class="btn btn-sm btn-outline-info rounded-pill px-3" style="text-decoration:none;">▶️ YouTube</a>
             </div>`;
         }
 
-        // 🌟 打開抽屜的按鈕
         extraHtml += `
             <div class="mt-4 text-center" data-html2canvas-ignore="true">
                 <button id="open-drawer-btn" class="btn btn-sm btn-outline-warning rounded-pill px-4">📖 查看牌義詳解</button>
@@ -227,7 +227,6 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => document.getElementById('flip-target').classList.add('is-flipped'), 100);
         if (downloadBtn) downloadBtn.style.display = 'block';
 
-        // 🌟 綁定抽屜的事件 (這裡修復了點擊沒反應的問題！)
         setTimeout(() => {
             const drawerBtn = document.getElementById('open-drawer-btn');
             if(drawerBtn) {
@@ -247,12 +246,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         <h6 class="text-danger fw-bold">⬇️ 逆位含義</h6>
                         <p class="small" style="color: var(--text-color);">${c.details.reversed}</p>
                     `;
-                    // 呼叫 Bootstrap 的 Offcanvas 打開側邊欄
                     const bsOffcanvas = new bootstrap.Offcanvas(document.getElementById('cardDetailDrawer'));
                     bsOffcanvas.show();
                 };
             }
-        }, 300); // 稍微增加延遲確保按鈕已生成
+        }, 300);
     };
 
     // === 發牌與控制 ===
@@ -298,12 +296,12 @@ document.addEventListener('DOMContentLoaded', () => {
         renderDeck(document.getElementById('temp-deck'), false);
     };
 
-    // === 🌟 歷史紀錄與圖表分析 (Chart.js) ===
+    // === 🌟 IG 典藏風命運日曆 ===
     historyBtn.onclick = async () => {
         if (!currentUser) return;
 
-        const listContainer = document.getElementById('history-list-container');
-        listContainer.innerHTML = '<div class="text-center my-4"><div class="spinner-border text-warning"></div><p class="text-muted mt-2">正在分析你的靈魂軌跡...</p></div>';
+        const modalBody = document.getElementById('history-modal-body');
+        modalBody.innerHTML = '<div class="text-center my-4"><div class="spinner-border text-warning"></div><p class="text-muted mt-2">正在翻閱你的命運日曆...</p></div>';
 
         const q = window.query(window.collection(db, "fortuneHistory"), window.where("uid", "==", currentUser.uid));
         const snap = await window.getDocs(q);
@@ -311,43 +309,62 @@ document.addEventListener('DOMContentLoaded', () => {
         snap.forEach(doc => records.push(doc.data()));
         records.sort((a, b) => b.timestamp.toMillis() - a.timestamp.toMillis());
 
-        const elementCounts = { "火系": 0, "水系": 0, "風系": 0, "土系": 0 };
-        records.forEach(r => {
-            const card = tarotCards.find(c => c.name === r.cardName);
-            if (card && card.details && card.details.element) {
-                if(elementCounts[card.details.element] !== undefined) elementCounts[card.details.element]++;
-            }
-        });
+        const recordedDays = new Set(records.map(r => {
+            const d = r.timestamp.toDate();
+            return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+        }));
 
-        const ctx = document.getElementById('elementChart');
-        if (chartInstance) chartInstance.destroy();
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth();
 
-        if (records.length > 0) {
-            chartInstance = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['🔥 火 (行動)', '💧 水 (情感)', '🌪️ 風 (思考)', '🌍 土 (物質)'],
-                    datasets: [{
-                        data: [elementCounts['火系'], elementCounts['水系'], elementCounts['風系'], elementCounts['土系']],
-                        backgroundColor: ['#ff6b6b', '#4dabf7', '#ffd43b', '#8ce200'],
-                        borderColor: '#161b22',
-                        borderWidth: 2
-                    }]
-                },
-                options: { plugins: { legend: { labels: { color: '#ffffff', font: { family: 'Noto Serif TC' } } } } }
-            });
+        const firstDayOfWeek = new Date(currentYear, currentMonth, 1).getDay();
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+        let calendarHtml = `
+            <div class="mystical-calendar-wrap mb-4" style="max-width: 280px; margin: 0 auto; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 15px; border: 1px solid var(--border-color);">
+                <div class="text-center mb-3 fw-bold text-accent" style="letter-spacing: 2px;">${currentYear} 年 ${currentMonth + 1} 月</div>
+                <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; text-align: center; font-size: 0.85rem;">
+                    <div class="text-muted">日</div><div class="text-muted">一</div><div class="text-muted">二</div><div class="text-muted">三</div><div class="text-muted">四</div><div class="text-muted">五</div><div class="text-muted">六</div>
+        `;
+
+        for (let i = 0; i < firstDayOfWeek; i++) {
+            calendarHtml += `<div></div>`;
         }
 
-        let html = '<ul class="list-group list-group-flush border-top border-secondary pt-3">';
-        if (records.length === 0) html += '<li class="list-group-item bg-transparent text-muted text-center border-0">目前還沒有通靈紀錄喔！</li>';
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dateStr = `${currentYear}-${currentMonth + 1}-${day}`;
+            const hasRecord = recordedDays.has(dateStr);
+            const isToday = (day === today.getDate());
+
+            let dayStyle = "width: 28px; height: 28px; line-height: 28px; margin: 0 auto; border-radius: 50%; transition: all 0.3s ease;";
+
+            if (hasRecord) {
+                dayStyle += " background: var(--accent-color); color: #000; font-weight: bold; box-shadow: 0 0 8px rgba(212, 175, 55, 0.6);";
+            } else if (isToday) {
+                dayStyle += " border: 1px solid var(--text-color); opacity: 0.8;";
+            } else {
+                dayStyle += " color: var(--text-color); opacity: 0.5;";
+            }
+
+            calendarHtml += `<div style="${dayStyle}">${day}</div>`;
+        }
+        calendarHtml += `</div></div>`;
+
+        let listHtml = '<ul class="list-group list-group-flush border-top border-secondary pt-3">';
+        if (records.length === 0) {
+             listHtml += '<li class="list-group-item bg-transparent text-muted text-center border-0">目前還沒有通靈紀錄喔！快去抽一張點亮你的日曆吧。</li>';
+        }
         records.forEach(r => {
-            html += `<li class="list-group-item bg-transparent text-light border-secondary py-3">
+            listHtml += `<li class="list-group-item bg-transparent text-light border-secondary py-3">
                 <div class="small text-info">${r.timestamp.toDate().toLocaleString()}</div>
                 <div class="fw-bold text-accent">${r.cardName} (${r.position})</div>
                 <div class="small mt-1 opacity-75">${r.interpretation}</div>
             </li>`;
         });
-        listContainer.innerHTML = html + '</ul>';
+        listHtml += '</ul>';
+
+        modalBody.innerHTML = calendarHtml + listHtml;
     };
 
     themeToggleBtn.onclick = () => {
