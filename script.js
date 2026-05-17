@@ -16,6 +16,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const dailyQuotaDisplay = document.getElementById('daily-quota-display');
     const customQuotaDisplay = document.getElementById('custom-quota-display');
 
+    if (!document.getElementById('music-genre-input')) {
+        deckContainer.insertAdjacentHTML('beforebegin', '<div class="d-flex justify-content-center"><input type="text" id="music-genre-input" class="form-control mystical-input mt-3 mb-2" style="max-width: 250px;" placeholder="🎵 想聽什麼曲風？(選填)"></div>');
+    }
+    const genreInput = document.getElementById('music-genre-input');
+
     // === 分類、心情、音樂按鈕邏輯 ===
     let currentCategory = "綜合";
     const categoryBtns = document.querySelectorAll('.category-btn');
@@ -37,7 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
 
-    // 🌟 新增：曲風按鈕綁定
     let currentMusicGenre = "全部";
     const musicBtns = document.querySelectorAll('.music-btn');
     musicBtns.forEach(btn => {
@@ -151,8 +155,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const isReversed = Math.random() < 0.5;
         const pos = isReversed ? "逆位" : "正位";
         const cat = isDaily ? "綜合" : currentCategory;
-
-        // 🌟 改用我們設定的按鈕，傳給後端
         const reqMusicGenre = isDaily ? currentMusicGenre : "";
 
         modalTitle.innerText = isDaily ? "🔮 每日神諭讀取中..." : `💬 正在編譯解答...`;
@@ -192,6 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>`;
         }
 
+        // 🌟 已修復：優化並使用 100% 正確的 Spotify 網頁端搜尋連結
         if (isDaily && songStr) {
             const ytLink = `https://www.youtube.com/results?search_query=${encodeURIComponent(songStr)}`;
             const appleLink = `https://music.apple.com/tw/search?term=${encodeURIComponent(songStr)}`;
@@ -306,7 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderDeck(document.getElementById('temp-deck'), false);
     };
 
-    // === 🌟 IG 典藏風命運日曆 (含心情笑臉) ===
+    // === IG 典藏風命運日曆 (包含心情笑臉) ===
     historyBtn.onclick = async () => {
         if (!currentUser) return;
 
@@ -372,7 +375,7 @@ document.addEventListener('DOMContentLoaded', () => {
         calendarHtml += `</div></div>`;
 
         let listHtml = '<ul class="list-group list-group-flush border-top border-secondary pt-3">';
-        if (records.length === 0) listHtml += '<li class="list-group-item bg-transparent text-muted text-center border-0">目前還沒有通靈紀錄喔！快去抽一張點亮你的日曆吧。</li>';
+        if (records.length === 0) listHtml += '<li class="list-group-item bg-transparent text-muted text-center border-0">目前還沒有通靈紀錄喔！</li>';
 
         records.forEach(r => {
             const moodBadge = r.mood ? `<span class="badge bg-warning text-dark me-2">${r.mood}</span>` : "";
@@ -392,7 +395,6 @@ document.addEventListener('DOMContentLoaded', () => {
         themeToggleBtn.innerText = document.body.classList.contains('light-theme') ? '切換深色星空 🌙' : '切換明亮晨光 ☀️';
     };
 
-    // 拍立得下載
     if (downloadBtn) {
         downloadBtn.onclick = () => {
             const captureArea = document.getElementById('capture-area');

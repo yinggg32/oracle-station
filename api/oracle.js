@@ -10,19 +10,19 @@ module.exports = async function handler(req, res) {
         let explanationInstruction = "";
 
         if (isDaily) {
-            toneInstruction = "你是一位風格敏銳、節奏明快的塔羅占卜師。";
+            toneInstruction = "你是一位風格敏銳、音樂品味極高且誠實的塔羅占卜師。";
             explanationInstruction = "直接寫出約 50 字點到為止的今日運勢提點。";
 
-            // 🌟 如果使用者選了「全部」，就從預設的流行曲風找；如果有指定，就強制找那個曲風
             let genreQuery = "";
             if (musicGenre && musicGenre !== "全部") {
-                genreQuery = `，且曲風必須是「${musicGenre}」`;
+                genreQuery = `，且曲風必須嚴格屬於「${musicGenre}」`;
             } else {
-                genreQuery = `，請優先推薦 R&B、Hip-Hop、City Pop 或 K-pop 等具質感的流行好歌`;
+                genreQuery = `，請優先從 R&B、Hip-Hop、City Pop、K-pop 或 J-pop 中挑選有質感的經典好歌`;
             }
 
             extraDaily = `
-            🎵 推薦歌曲：請根據「${cardName}」這張牌的意境${genreQuery}，推薦一首完全符合此能量且【真實存在】的歌曲（絕對不能是AI生成的假歌）。格式：歌手 - 歌名
+            🎵 推薦歌曲：請根據「${cardName}」這張牌的今日能量意境${genreQuery}，推薦一首【現實世界中 100% 真實存在、且具備一定知名度】的流行歌曲。
+            【極度重要鋼鐵規則】：絕對禁止自己發明或拼湊任何不存在的歌手與假歌名！如果大腦一時間找不到對應曲風的歌，請直接推薦該曲風的經典天王天后名曲（例如 J-pop 就推薦宇多田光、米津玄師或 Vaundy 的真實好歌）。格式必須精確為：歌手 - 歌名
             🍀 幸運物：具體物品
             ✨ 幸運色：顏色
             `;
@@ -44,7 +44,7 @@ module.exports = async function handler(req, res) {
         【嚴格規則】
         1. 完全遵守下方的輸出結構，不要印出括號內的提示文字。
         2. 建議必須具體，若問題是問吃什麼，建議的 1、2、3 點就必須是「具體的食物或料理類型」。
-        3. 音樂推薦絕對禁止發明歌名！必須是 YouTube 找得到的真實歌曲。
+        3. 推薦的歌曲必須完全符合上方特別要求的真實性，絕對不准瞎掰！
 
         [牌面解釋]
         ${explanationInstruction}
@@ -53,10 +53,6 @@ module.exports = async function handler(req, res) {
         1. 第一條具體建議
         2. 第二條具體建議
         3. 第三條具體建議${extraDaily}
-
-        [系統隱藏指令]
-        本次防重複亂數種子：${Date.now()}
-        請確保本次推薦的歌曲與之前不同，請挖掘較少人知道的隱藏好歌。輸出時【絕對不要】印出亂數種子或任何額外的括號文字。
         `;
 
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -65,8 +61,9 @@ module.exports = async function handler(req, res) {
             body: JSON.stringify({
                 model: 'llama-3.1-8b-instant',
                 messages: [{ role: 'user', content: promptText }],
-                max_tokens: 600,
-                temperature: 0.8 // 🌟 調高溫度讓歌單不重複
+                max_tokens: 550,
+                // 🌟 將溫度壓低到 0.4，大幅提高真實度，封印瞎掰能力
+                temperature: 0.4
             })
         });
 
