@@ -21,18 +21,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const genreInput = document.getElementById('music-genre-input');
 
-    // === 分類按鈕邏輯 ===
+    // === 🌟 分類與心情按鈕邏輯 ===
     let currentCategory = "綜合";
     const categoryBtns = document.querySelectorAll('.category-btn');
     categoryBtns.forEach(btn => {
         btn.onclick = (e) => {
-            categoryBtns.forEach(b => {
-                b.classList.remove('active', 'btn-info');
-                b.classList.add('btn-outline-info');
-            });
-            e.target.classList.remove('btn-outline-info');
-            e.target.classList.add('active', 'btn-info');
+            categoryBtns.forEach(b => { b.classList.remove('active', 'btn-info'); b.classList.add('btn-outline-info'); });
+            e.target.classList.remove('btn-outline-info'); e.target.classList.add('active', 'btn-info');
             currentCategory = e.target.dataset.cat;
+        };
+    });
+
+    let currentMood = "😊";
+    const moodBtns = document.querySelectorAll('.mood-btn');
+    moodBtns.forEach(btn => {
+        btn.onclick = (e) => {
+            moodBtns.forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            currentMood = e.target.dataset.mood;
         };
     });
 
@@ -61,14 +67,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.onAuthStateChanged(auth, (user) => {
         if (user) {
-            currentUser = user;
-            loginBtn.classList.add('d-none');
-            userProfile.classList.remove('d-none');
+            currentUser = user; loginBtn.classList.add('d-none'); userProfile.classList.remove('d-none');
             userNameDisplay.innerText = `歡迎，${user.displayName.split(' ')[0]}`;
         } else {
-            currentUser = null;
-            loginBtn.classList.remove('d-none');
-            userProfile.classList.add('d-none');
+            currentUser = null; loginBtn.classList.remove('d-none'); userProfile.classList.add('d-none');
         }
         updateQuotaDisplay();
     });
@@ -182,17 +184,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>`;
         }
 
-        // 🌟 Apple Music + Spotify + YouTube 滿血平台！
+        // 🌟 新增：明確顯示歌名，並使用正確的 Spotify 搜尋連結
         if (isDaily && songStr) {
             const ytLink = `https://www.youtube.com/results?search_query=${encodeURIComponent(songStr)}`;
             const appleLink = `https://music.apple.com/tw/search?term=${encodeURIComponent(songStr)}`;
             const spotifyLink = `https://open.spotify.com/search/${encodeURIComponent(songStr)}`;
 
             extraHtml += `
-            <div class="mt-3 text-center d-flex flex-wrap justify-content-center gap-2" data-html2canvas-ignore="true">
-                <a href="${appleLink}" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-3" style="text-decoration:none;">🎵 Apple Music</a>
-                <a href="${spotifyLink}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill px-3" style="text-decoration:none;">🎧 Spotify</a>
-                <a href="${ytLink}" target="_blank" class="btn btn-sm btn-outline-info rounded-pill px-3" style="text-decoration:none;">▶️ YouTube</a>
+            <div class="mt-4 text-center">
+                <h6 class="text-info fw-bold mb-3">🎵 宇宙專屬推薦曲目：<br><span class="text-light">${songStr}</span></h6>
+                <div class="d-flex flex-wrap justify-content-center gap-2" data-html2canvas-ignore="true">
+                    <a href="${appleLink}" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-3" style="text-decoration:none;">🎵 Apple Music</a>
+                    <a href="${spotifyLink}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill px-3" style="text-decoration:none;">🎧 Spotify</a>
+                    <a href="${ytLink}" target="_blank" class="btn btn-sm btn-outline-info rounded-pill px-3" style="text-decoration:none;">▶️ YouTube</a>
+                </div>
             </div>`;
         }
 
@@ -202,9 +207,11 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
+        // 🌟 儲存 Firebase 時，把選擇的心情存進去！
         if (currentUser && !aiText.includes("❌")) {
             window.addDoc(window.collection(db, "fortuneHistory"), {
-                uid: currentUser.uid, question: q || "每日運勢", cardName: c.name, position: pos, interpretation: readingText, timestamp: new Date()
+                uid: currentUser.uid, question: q || "每日運勢", cardName: c.name, position: pos, interpretation: readingText, timestamp: new Date(),
+                mood: isDaily ? currentMood : null
             });
         }
 
@@ -262,10 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
             card.className = 'deck-card';
             card.onclick = () => {
                 const limit = checkDrawLimit(isDaily);
-                if (!limit.allowed) {
-                    alert(limit.message);
-                    return;
-                }
+                if (!limit.allowed) { alert(limit.message); return; }
                 commitDrawUsage(isDaily, limit.usageData);
                 const q = isDaily ? "" : userQuestionInput.value.trim();
                 processDraw(q, isDaily);
@@ -296,7 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderDeck(document.getElementById('temp-deck'), false);
     };
 
-    // === 🌟 IG 典藏風命運日曆 ===
+    // === 🌟 IG 典藏風命運日曆 (含心情笑臉) ===
     historyBtn.onclick = async () => {
         if (!currentUser) return;
 
@@ -309,10 +313,17 @@ document.addEventListener('DOMContentLoaded', () => {
         snap.forEach(doc => records.push(doc.data()));
         records.sort((a, b) => b.timestamp.toMillis() - a.timestamp.toMillis());
 
-        const recordedDays = new Set(records.map(r => {
+        // 🌟 把日期與對應的心情整理起來
+        const recordedDays = new Map();
+        records.forEach(r => {
             const d = r.timestamp.toDate();
-            return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
-        }));
+            const dateStr = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+            if (!recordedDays.has(dateStr)) {
+                recordedDays.set(dateStr, r.mood || null);
+            } else if (r.mood) {
+                recordedDays.set(dateStr, r.mood);
+            }
+        });
 
         const today = new Date();
         const currentYear = today.getFullYear();
@@ -328,36 +339,40 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="text-muted">日</div><div class="text-muted">一</div><div class="text-muted">二</div><div class="text-muted">三</div><div class="text-muted">四</div><div class="text-muted">五</div><div class="text-muted">六</div>
         `;
 
-        for (let i = 0; i < firstDayOfWeek; i++) {
-            calendarHtml += `<div></div>`;
-        }
+        for (let i = 0; i < firstDayOfWeek; i++) { calendarHtml += `<div></div>`; }
 
         for (let day = 1; day <= daysInMonth; day++) {
             const dateStr = `${currentYear}-${currentMonth + 1}-${day}`;
             const hasRecord = recordedDays.has(dateStr);
+            const recordMood = recordedDays.get(dateStr);
             const isToday = (day === today.getDate());
 
             let dayStyle = "width: 28px; height: 28px; line-height: 28px; margin: 0 auto; border-radius: 50%; transition: all 0.3s ease;";
+            let innerHtml = day;
 
             if (hasRecord) {
                 dayStyle += " background: var(--accent-color); color: #000; font-weight: bold; box-shadow: 0 0 8px rgba(212, 175, 55, 0.6);";
+                if (recordMood) {
+                    innerHtml = recordMood; // 🌟 如果有心情，用笑臉取代數字！
+                    dayStyle += " font-size: 1.1rem;";
+                }
             } else if (isToday) {
                 dayStyle += " border: 1px solid var(--text-color); opacity: 0.8;";
             } else {
                 dayStyle += " color: var(--text-color); opacity: 0.5;";
             }
 
-            calendarHtml += `<div style="${dayStyle}">${day}</div>`;
+            calendarHtml += `<div style="${dayStyle}">${innerHtml}</div>`;
         }
         calendarHtml += `</div></div>`;
 
         let listHtml = '<ul class="list-group list-group-flush border-top border-secondary pt-3">';
-        if (records.length === 0) {
-             listHtml += '<li class="list-group-item bg-transparent text-muted text-center border-0">目前還沒有通靈紀錄喔！快去抽一張點亮你的日曆吧。</li>';
-        }
+        if (records.length === 0) listHtml += '<li class="list-group-item bg-transparent text-muted text-center border-0">目前還沒有通靈紀錄喔！快去抽一張點亮你的日曆吧。</li>';
+
         records.forEach(r => {
+            const moodBadge = r.mood ? `<span class="badge bg-warning text-dark me-2">${r.mood}</span>` : "";
             listHtml += `<li class="list-group-item bg-transparent text-light border-secondary py-3">
-                <div class="small text-info">${r.timestamp.toDate().toLocaleString()}</div>
+                <div class="small text-info mb-1">${moodBadge}${r.timestamp.toDate().toLocaleString()}</div>
                 <div class="fw-bold text-accent">${r.cardName} (${r.position})</div>
                 <div class="small mt-1 opacity-75">${r.interpretation}</div>
             </li>`;

@@ -37,8 +37,16 @@
             <div class="col-md-5">
                 <div class="mystical-card p-4 text-center h-100 shadow">
                     <h4 class="mb-3 text-accent">今日塔羅神諭</h4>
-                    <p id="daily-quota-display" class="small text-warning fw-bold mb-2">⏳ 今日可用：1 / 1 次</p>
-                    <p class="small text-muted mb-4">從下方牌陣中選取一張感應卡牌</p>
+                    <p id="daily-quota-display" class="small text-warning fw-bold mb-3">⏳ 今日可用：1 / 1 次</p>
+
+                    <p class="small text-muted mb-2">請選擇今日心情：</p>
+                    <div class="d-flex justify-content-center gap-2 mb-3" id="mood-group">
+                        <button class="btn btn-sm btn-outline-warning mood-btn active" data-mood="😊">😊</button>
+                        <button class="btn btn-sm btn-outline-warning mood-btn" data-mood="😆">😆</button>
+                        <button class="btn btn-sm btn-outline-warning mood-btn" data-mood="😐">😐</button>
+                        <button class="btn btn-sm btn-outline-warning mood-btn" data-mood="😢">😢</button>
+                        <button class="btn btn-sm btn-outline-warning mood-btn" data-mood="😡">😡</button>
+                    </div>
 
                     <button id="shuffle-btn" class="btn btn-sm btn-outline-secondary rounded-pill mb-4">重新洗牌 🔀</button>
                     <div id="tarot-deck-container" class="tarot-deck"></div>
