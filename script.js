@@ -16,10 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const dailyQuotaDisplay = document.getElementById('daily-quota-display');
     const customQuotaDisplay = document.getElementById('custom-quota-display');
 
-    if (!document.getElementById('music-genre-input')) {
-        deckContainer.insertAdjacentHTML('beforebegin', '<div class="d-flex justify-content-center"><input type="text" id="music-genre-input" class="form-control mystical-input mt-3 mb-2" style="max-width: 250px;" placeholder="🎵 想聽什麼曲風？(選填)"></div>');
-    }
-    const genreInput = document.getElementById('music-genre-input');
+
 
     // === 分類、心情、音樂按鈕邏輯 ===
     let currentCategory = "綜合";
