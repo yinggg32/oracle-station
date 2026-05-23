@@ -142,7 +142,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.error) throw new Error(data.error);
             return data.text;
         } catch (e) {
-            return "伺服器無回應 ❌ 請稍後再試。";
+            console.error("後端噴錯啦：", e);
+            return `伺服器無回應 ❌ 詳細錯誤：${e.message}`;
         }
     }
 
