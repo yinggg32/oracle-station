@@ -1,6 +1,7 @@
 module.exports = async function handler(req, res) {
-    const apiKey = process.env.GROQ_API_KEY;
-    if (!apiKey) return res.status(500).json({ error: "環境變數 GROQ_API_KEY 是空的！" });
+    // 🌟 1. 改成讀取 OpenAI 的金鑰
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) return res.status(500).json({ error: "環境變數 OPENAI_API_KEY 是空的！請去 Vercel 設定。" });
 
     try {
         const { question, cardName, position, musicGenre, isDaily, category } = req.body;
@@ -17,12 +18,12 @@ module.exports = async function handler(req, res) {
             if (musicGenre && musicGenre !== "全部") {
                 genreQuery = `，且曲風必須嚴格屬於「${musicGenre}」`;
             } else {
-                genreQuery = `，請優先從 R&B、Hip-Hop、City Pop、K-pop 或 J-pop 中挑選有質感的經典好歌`;
+                genreQuery = `，請優先從 R&B、Hip-Hop、City Pop、K-pop 或 J-pop 中挑選有質感的流行好歌`;
             }
 
             extraDaily = `
             🎵 推薦歌曲：請根據「${cardName}」這張牌的今日能量意境${genreQuery}，推薦一首【現實世界中 100% 真實存在、且具備一定知名度】的流行歌曲。
-            【極度重要鋼鐵規則】：絕對禁止自己發明或拼湊任何不存在的歌手與假歌名！如果大腦一時間找不到對應曲風的歌，請直接推薦該曲風的經典天王天后名曲（例如 J-pop 就推薦宇多田光、米津玄師或 Vaundy 的真實好歌）。格式必須精確為：歌手 - 歌名
+            【極度重要鋼鐵規則】：絕對禁止自己發明或拼湊任何不存在的歌手與假歌名！如果大腦一時間找不到對應曲風的歌，請直接推薦該曲風的經典天王天后名曲。格式必須精確為：歌手 - 歌名
             🍀 幸運物：具體物品
             ✨ 幸運色：顏色
             `;
@@ -53,22 +54,28 @@ module.exports = async function handler(req, res) {
         1. 第一條具體建議
         2. 第二條具體建議
         3. 第三條具體建議${extraDaily}
+
+        [系統隱藏指令]
+        本次防重複亂數種子：${Date.now()}
+        請確保本次推薦的歌曲與之前不同，請挖掘較少人知道的隱藏好歌。輸出時【絕對不要】印出亂數種子或任何額外的括號文字。
         `;
 
-        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        // 🌟 2. 網址換成 OpenAI 官方 API
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
             body: JSON.stringify({
-                model: 'llama-3.1-8b-instant',
+                // 🌟 3. 模型換成 gpt-4o-mini (超聰明又便宜)
+                model: 'gpt-4o-mini',
                 messages: [{ role: 'user', content: promptText }],
                 max_tokens: 550,
-                // 🌟 將溫度壓低到 0.4，大幅提高真實度，封印瞎掰能力
-                temperature: 0.4
+                // ChatGPT 很聰明，溫度給 0.6 讓它發揮一點選歌創意，但又不會瞎掰
+                temperature: 0.6
             })
         });
 
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error?.message || "Groq 拒絕請求");
+        if (!response.ok) throw new Error(data.error?.message || "OpenAI 拒絕請求");
 
         res.status(200).json({ text: data.choices[0].message.content });
 
