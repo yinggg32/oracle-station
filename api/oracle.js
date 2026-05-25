@@ -1,5 +1,4 @@
 module.exports = async function handler(req, res) {
-    // 🌟 1. 改成讀取 OpenAI 的金鑰
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) return res.status(500).json({ error: "環境變數 OPENAI_API_KEY 是空的！請去 Vercel 設定。" });
 
@@ -21,9 +20,15 @@ module.exports = async function handler(req, res) {
                 genreQuery = `，請優先從 R&B、Hip-Hop、City Pop、K-pop 或 J-pop 中挑選有質感的流行好歌`;
             }
 
+            // 🌟 終極殺手鐧：動態生成隨機年代與氛圍，強迫 AI 換歌！
+            const decades = ["1980年代", "1990年代", "2000年代", "2010年代", "2020年代"];
+            const randomDecade = decades[Math.floor(Math.random() * decades.length)];
+            const vibes = ["慵懶微醺", "節奏強烈", "迷幻復古", "深夜emo", "輕快明亮"];
+            const randomVibe = vibes[Math.floor(Math.random() * vibes.length)];
+
             extraDaily = `
-            🎵 推薦歌曲：請根據「${cardName}」這張牌的今日能量意境${genreQuery}，推薦一首【現實世界中 100% 真實存在、且具備一定知名度】的流行歌曲。
-            【極度重要鋼鐵規則】：絕對禁止自己發明或拼湊任何不存在的歌手與假歌名！如果大腦一時間找不到對應曲風的歌，請直接推薦該曲風的經典天王天后名曲。格式必須精確為：歌手 - 歌名
+            🎵 推薦歌曲：請根據「${cardName}」這張牌的今日能量意境${genreQuery}，推薦一首【現實世界中 100% 真實存在】的流行歌曲。
+            【極度重要防重複指令】：為了保證每次推薦都不同，請你強制挑選一首發行於「${randomDecade}」，且帶有「${randomVibe}」氛圍的歌曲！嚴禁推薦該曲風最氾濫的口水歌（例如 City Pop 嚴禁推 Plastic Love），請扮演獨立音樂策展人，挖出隱藏的神曲。格式必須精確為：歌手 - 歌名
             🍀 幸運物：具體物品
             ✨ 幸運色：顏色
             `;
@@ -54,23 +59,17 @@ module.exports = async function handler(req, res) {
         1. 第一條具體建議
         2. 第二條具體建議
         3. 第三條具體建議${extraDaily}
-
-        [系統隱藏指令]
-        本次防重複亂數種子：${Date.now()}
-        請確保本次推薦的歌曲與之前不同，請挖掘較少人知道的隱藏好歌。輸出時【絕對不要】印出亂數種子或任何額外的括號文字。
         `;
 
-        // 🌟 2. 網址換成 OpenAI 官方 API
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
             body: JSON.stringify({
-                // 🌟 3. 模型換成 gpt-4o-mini (超聰明又便宜)
                 model: 'gpt-4o-mini',
                 messages: [{ role: 'user', content: promptText }],
                 max_tokens: 550,
-                // ChatGPT 很聰明，溫度給 0.6 讓它發揮一點選歌創意，但又不會瞎掰
-                temperature: 0.6
+                // 🌟 溫度稍微調高到 0.7，給它一點創意空間去找冷門歌
+                temperature: 0.7
             })
         });
 
@@ -80,6 +79,7 @@ module.exports = async function handler(req, res) {
         res.status(200).json({ text: data.choices[0].message.content });
 
     } catch (error) {
+        console.error("後端噴錯啦：", error);
         res.status(500).json({ error: error.message });
     }
 };
