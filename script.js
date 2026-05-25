@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const dailyQuotaDisplay = document.getElementById('daily-quota-display');
     const customQuotaDisplay = document.getElementById('custom-quota-display');
 
-    // 🌟 駭客模式專屬變數
+    // 🌟 駭客模式變數
     let titleClickCount = 0;
     let isHackerMode = false;
 
@@ -51,25 +51,34 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
 
-    // === 🌟 駭客密碼觸發監聽 ===
-    const mysticalTitle = document.querySelector('.mystical-title');
-    if (mysticalTitle) {
-        mysticalTitle.style.cursor = 'pointer'; // 讓滑鼠移上去時顯示手指，暗示可以點擊
-        mysticalTitle.onclick = () => {
-            titleClickCount++;
-            if (titleClickCount === 7) {
-                isHackerMode = true;
-                alert("🟢 [SYSTEM WARNING]\n已強行突破宇宙防火牆，進入開發者代碼矩陣！\n右側【AI 靈魂診斷】本日額度已成功篡改為 10 次！");
-                updateQuotaDisplay(); // 瞬間更新畫面上的可用次數
-            }
-        };
-    }
-
     // === Firebase 狀態與額度管理 ===
     const auth = window.firebaseAuth;
     const db = window.firebaseDb;
     let currentUser = null;
     const ADMIN_EMAIL = "sophiayeh2394www@gmail.com";
+
+    // === 🌟 駭客密碼觸發監聽 (加入登入驗證！) ===
+    const mysticalTitle = document.querySelector('.mystical-title');
+    if (mysticalTitle) {
+        mysticalTitle.style.cursor = 'pointer';
+        mysticalTitle.onclick = () => {
+            if (!currentUser) {
+                titleClickCount++;
+                if (titleClickCount >= 7) {
+                    alert("⚠️ [ACCESS DENIED]\n未授權的訪客靈魂！請先登入帳號，才能嘗試突破宇宙防火牆。");
+                    titleClickCount = 0; // 擋下來並重置次數
+                }
+                return;
+            }
+
+            titleClickCount++;
+            if (titleClickCount === 7) {
+                isHackerMode = true;
+                alert("🟢 [SYSTEM WARNING]\n已強行突破宇宙防火牆，進入開發者代碼矩陣！\n右側【AI 靈魂診斷】本日額度已成功篡改為 10 次！");
+                updateQuotaDisplay();
+            }
+        };
+    }
 
     function updateQuotaDisplay() {
         if (currentUser && currentUser.email === ADMIN_EMAIL) {
@@ -82,8 +91,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (usageData.date !== today) usageData = { date: today, dailyCount: 0, customCount: 0 };
 
         const dailyLeft = Math.max(0, 1 - usageData.dailyCount);
-
-        // 🌟 根據駭客模式狀態，動態改變最大次數
         const maxCustom = isHackerMode ? 10 : 3;
         const customLeft = Math.max(0, maxCustom - usageData.customCount);
 
@@ -112,11 +119,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (isDaily && usageData.dailyCount >= 1) return { allowed: false, message: "⏳ 【今日神諭】限抽 1 次。\n請等待今晚 12 點過後重置。" };
 
-        // 🌟 駭客模式下，右側上限提高到 10 次
         const maxCustom = isHackerMode ? 10 : 3;
-        if (!isDaily && usageData.customCount >= maxCustom) {
-            return { allowed: false, message: `⏳ 【靈魂診斷】每日 ${maxCustom} 次額度已用盡。\n請等待今晚 12 點過後重置。` };
-        }
+        if (!isDaily && usageData.customCount >= maxCustom) return { allowed: false, message: `⏳ 【靈魂診斷】每日 ${maxCustom} 次額度已用盡。\n請等待今晚 12 點過後重置。` };
 
         return { allowed: true, usageData: usageData };
     }
@@ -166,7 +170,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.error) throw new Error(data.error);
             return data.text;
         } catch (e) {
-            return "伺服器無回應 ❌ 請稍後再試。";
+            console.error("後端噴錯啦：", e);
+            return `伺服器無回應 ❌ 詳細錯誤：${e.message}`;
         }
     }
 
@@ -244,6 +249,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
+        modalTitle.innerText = isDaily ? "🔮 今日塔羅神諭" : `💬 靈魂診斷 (${cat})`;
+
         modalBody.innerHTML = `
             <div class="card-container mb-3 mx-auto">
                 <div class="card-inner" id="flip-target">
@@ -258,7 +265,6 @@ document.addEventListener('DOMContentLoaded', () => {
             ${extraHtml}
         `;
 
-        modalTitle.innerText = isDaily ? "🔮 今日塔羅神諭" : `💬 靈魂診斷 (${cat})`;
         setTimeout(() => document.getElementById('flip-target').classList.add('is-flipped'), 100);
         if (downloadBtn) downloadBtn.style.display = 'block';
 
@@ -288,7 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 300);
     };
 
-    // === 發牌與控制 ===
+    // === 發牌與控制 (包含彩蛋區！) ===
     const renderDeck = (container, isDaily) => {
         container.innerHTML = '';
         container.classList.add('shuffling');
@@ -314,10 +320,34 @@ document.addEventListener('DOMContentLoaded', () => {
     shuffleBtn.onclick = (e) => { e.preventDefault(); renderDeck(deckContainer, true); };
     updateQuotaDisplay();
 
+    // 🌟 右側按鈕：檢查是否輸入了彩蛋關鍵字
     drawLotBtn.onclick = (e) => {
         e.preventDefault();
         const q = userQuestionInput.value.trim();
         if(!q) return alert("請輸入妳的困惑...");
+
+        // 🌟 彩蛋 1：瑞克搖 (Rickroll)
+        if (q === "放棄" || q === "想放棄") {
+            alert("🌌 宇宙接收到了你的脆弱，但宇宙 Never Gonna Give You Up！");
+            window.open("https://www.youtube.com/watch?v=dQw4w9WgXcQ", "_blank");
+            userQuestionInput.value = '';
+            return; // 終止流程，不扣額度不打 API！
+        }
+
+        // 🌟 彩蛋 2：必過咒語
+        if (q === "軟工專題") {
+            alert("✨ [系統攔截]\n宇宙預言：這組專題架構完整、API 串接完美，加上滿滿的彩蛋，教授絕對直接給 A+！");
+            userQuestionInput.value = '';
+            return;
+        }
+
+        // 🌟 彩蛋 3：應援能量包
+        if (q.toUpperCase() === "TREASURE" || q.toUpperCase() === "TRUZ") {
+            alert("💎 [TEUME 專屬通道]\n10 隻充滿活力的 TRUZ 角色正在為妳應援！今天也要開心地度過喔！💙");
+            userQuestionInput.value = '';
+            return;
+        }
+
         let temp = document.getElementById('temp-deck-container');
         if (!temp) {
             temp = document.createElement('div');
