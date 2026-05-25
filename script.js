@@ -16,7 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const dailyQuotaDisplay = document.getElementById('daily-quota-display');
     const customQuotaDisplay = document.getElementById('custom-quota-display');
 
-
+    // 🌟 駭客模式專屬變數
+    let titleClickCount = 0;
+    let isHackerMode = false;
 
     // === 分類、心情、音樂按鈕邏輯 ===
     let currentCategory = "綜合";
@@ -49,6 +51,20 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
 
+    // === 🌟 駭客密碼觸發監聽 ===
+    const mysticalTitle = document.querySelector('.mystical-title');
+    if (mysticalTitle) {
+        mysticalTitle.style.cursor = 'pointer'; // 讓滑鼠移上去時顯示手指，暗示可以點擊
+        mysticalTitle.onclick = () => {
+            titleClickCount++;
+            if (titleClickCount === 7) {
+                isHackerMode = true;
+                alert("🟢 [SYSTEM WARNING]\n已強行突破宇宙防火牆，進入開發者代碼矩陣！\n右側【AI 靈魂診斷】本日額度已成功篡改為 10 次！");
+                updateQuotaDisplay(); // 瞬間更新畫面上的可用次數
+            }
+        };
+    }
+
     // === Firebase 狀態與額度管理 ===
     const auth = window.firebaseAuth;
     const db = window.firebaseDb;
@@ -66,10 +82,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (usageData.date !== today) usageData = { date: today, dailyCount: 0, customCount: 0 };
 
         const dailyLeft = Math.max(0, 1 - usageData.dailyCount);
-        const customLeft = Math.max(0, 3 - usageData.customCount);
+
+        // 🌟 根據駭客模式狀態，動態改變最大次數
+        const maxCustom = isHackerMode ? 10 : 3;
+        const customLeft = Math.max(0, maxCustom - usageData.customCount);
 
         if (dailyQuotaDisplay) dailyQuotaDisplay.innerText = `⏳ 今日可用：${dailyLeft} / 1 次`;
-        if (customQuotaDisplay) customQuotaDisplay.innerText = `⏳ 今日可用：${customLeft} / 3 次`;
+        if (customQuotaDisplay) customQuotaDisplay.innerText = `⏳ 今日可用：${customLeft} / ${maxCustom} 次 ${isHackerMode ? '🟢 駭客模式' : ''}`;
     }
 
     window.onAuthStateChanged(auth, (user) => {
@@ -92,7 +111,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (usageData.date !== today) usageData = { date: today, dailyCount: 0, customCount: 0 };
 
         if (isDaily && usageData.dailyCount >= 1) return { allowed: false, message: "⏳ 【今日神諭】限抽 1 次。\n請等待今晚 12 點過後重置。" };
-        if (!isDaily && usageData.customCount >= 3) return { allowed: false, message: "⏳ 【靈魂診斷】每日 3 次額度已用盡。\n請等待今晚 12 點過後重置。" };
+
+        // 🌟 駭客模式下，右側上限提高到 10 次
+        const maxCustom = isHackerMode ? 10 : 3;
+        if (!isDaily && usageData.customCount >= maxCustom) {
+            return { allowed: false, message: `⏳ 【靈魂診斷】每日 ${maxCustom} 次額度已用盡。\n請等待今晚 12 點過後重置。` };
+        }
 
         return { allowed: true, usageData: usageData };
     }
@@ -142,8 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.error) throw new Error(data.error);
             return data.text;
         } catch (e) {
-            console.error("後端噴錯啦：", e);
-            return `伺服器無回應 ❌ 詳細錯誤：${e.message}`;
+            return "伺服器無回應 ❌ 請稍後再試。";
         }
     }
 
@@ -192,7 +215,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>`;
         }
 
-        // 🌟 已修復：優化並使用 100% 正確的 Spotify 網頁端搜尋連結
         if (isDaily && songStr) {
             const ytLink = `https://www.youtube.com/results?search_query=${encodeURIComponent(songStr)}`;
             const appleLink = `https://music.apple.com/tw/search?term=${encodeURIComponent(songStr)}`;
@@ -222,8 +244,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        modalTitle.innerText = isDaily ? "🔮 今日塔羅神諭" : `💬 靈魂診斷 (${cat})`;
-
         modalBody.innerHTML = `
             <div class="card-container mb-3 mx-auto">
                 <div class="card-inner" id="flip-target">
@@ -238,6 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ${extraHtml}
         `;
 
+        modalTitle.innerText = isDaily ? "🔮 今日塔羅神諭" : `💬 靈魂診斷 (${cat})`;
         setTimeout(() => document.getElementById('flip-target').classList.add('is-flipped'), 100);
         if (downloadBtn) downloadBtn.style.display = 'block';
 
@@ -291,6 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderDeck(deckContainer, true);
     shuffleBtn.onclick = (e) => { e.preventDefault(); renderDeck(deckContainer, true); };
+    updateQuotaDisplay();
 
     drawLotBtn.onclick = (e) => {
         e.preventDefault();
@@ -307,7 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderDeck(document.getElementById('temp-deck'), false);
     };
 
-    // === IG 典藏風命運日曆 (包含心情笑臉) ===
+    // === IG 典藏風命運日曆 ===
     historyBtn.onclick = async () => {
         if (!currentUser) return;
 
