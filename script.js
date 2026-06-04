@@ -1,3 +1,8 @@
+沒問題！我已經把原本的「軟工專題」跟「TREASURE」彩蛋拔掉，完美替換成保留的「瑞克搖」**，以及新增的**「DJ 迷因」**、**「AI 崩潰老實話」**和**「威力彩 404 地獄梗」。
+
+請直接全選並覆蓋妳的 **`script.js`**：
+
+```javascript
 document.addEventListener('DOMContentLoaded', () => {
     // 綁定 DOM
     const themeToggleBtn = document.getElementById('theme-toggle');
@@ -334,16 +339,24 @@ document.addEventListener('DOMContentLoaded', () => {
             return; // 終止流程，不扣額度不打 API！
         }
 
-        // 🌟 彩蛋 2：必過咒語
-        if (q === "軟工專題") {
-            alert("✨ [系統攔截]\n宇宙預言：這組專題架構完整、API 串接完美，加上滿滿的彩蛋，教授絕對直接給 A+！");
+        // 🌟 彩蛋 2：如果我是 DJ 迷因 (支援大小寫與不同人稱)
+        if (q.toLowerCase().includes("如果我是dj") && q.includes("還會愛我嗎")) {
+            alert("🎧 [宇宙廣播頻道]\n這個問題太深奧了，宇宙沒辦法回答你，但你可以聽聽這首歌...");
+            window.open("https://youtube.com/shorts/oxpTVAODHyI?si=dUPq8EdliIOy_t4S", "_blank");
             userQuestionInput.value = '';
             return;
         }
 
-        // 🌟 彩蛋 3：應援能量包
-        if (q.toUpperCase() === "TREASURE" || q.toUpperCase() === "TRUZ") {
-            alert("💎 [TEUME 專屬通道]\n10 隻充滿活力的 TRUZ 角色正在為妳應援！今天也要開心地度過喔！💙");
+        // 🌟 彩蛋 3：打破第四面牆 (AI 的崩潰老實話)
+        if (q.includes("你是誰") || q.toLowerCase().includes("你是ai") || q.includes("造物主")) {
+            alert("🤖 [系統崩潰中]\n我只是一個被軟工系學生無情奴役、日夜加班的 AI 模型。\n請不要問我太難的問題，這個免費的伺服器快撐不住了...");
+            userQuestionInput.value = '';
+            return;
+        }
+
+        // 🌟 彩蛋 4：宇宙的殘酷現實 (威力彩地獄梗)
+        if (q.includes("樂透") || q.includes("威力彩") || q.includes("發財")) {
+            alert("💸 [宇宙現實面]\n醒醒吧！如果宇宙真的知道這期威力彩號碼，我就不會在這裡用免費的 API 幫你算命了。\n\n不過你的專屬幸運號碼是：4、0、4、Not、Found。");
             userQuestionInput.value = '';
             return;
         }
@@ -461,3 +474,5 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 });
+
+```
