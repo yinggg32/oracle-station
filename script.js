@@ -1,8 +1,3 @@
-沒問題！我已經把原本的「軟工專題」跟「TREASURE」彩蛋拔掉，完美替換成保留的「瑞克搖」**，以及新增的**「DJ 迷因」**、**「AI 崩潰老實話」**和**「威力彩 404 地獄梗」。
-
-請直接全選並覆蓋妳的 **`script.js`**：
-
-```javascript
 document.addEventListener('DOMContentLoaded', () => {
     // 綁定 DOM
     const themeToggleBtn = document.getElementById('theme-toggle');
@@ -338,8 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
             userQuestionInput.value = '';
             return; // 終止流程，不扣額度不打 API！
         }
-
-        // 🌟 彩蛋 2：如果我是 DJ 迷因 (支援大小寫與不同人稱)
+        // 🌟 彩蛋 2：如果我是 DJ 迷因 (支援你/他/她)
         if (q.toLowerCase().includes("如果我是dj") && q.includes("還會愛我嗎")) {
             alert("🎧 [宇宙廣播頻道]\n這個問題太深奧了，宇宙沒辦法回答你，但你可以聽聽這首歌...");
             window.open("https://youtube.com/shorts/oxpTVAODHyI?si=dUPq8EdliIOy_t4S", "_blank");
@@ -347,8 +341,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // 🌟 彩蛋 3：打破第四面牆 (AI 的崩潰老實話)
-        if (q.includes("你是誰") || q.toLowerCase().includes("你是ai") || q.includes("造物主")) {
+        // 🌟 彩蛋 3：打破第四面牆 (AI 的老實話)
+        if (q.includes("你是誰") || q.includes("你是ai") || q.includes("造物主")) {
             alert("🤖 [系統崩潰中]\n我只是一個被軟工系學生無情奴役、日夜加班的 AI 模型。\n請不要問我太難的問題，這個免費的伺服器快撐不住了...");
             userQuestionInput.value = '';
             return;
@@ -474,5 +468,3 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 });
-
-```
