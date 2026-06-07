@@ -59,7 +59,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const { question, cardName, position, musicGenre, isDaily, category, uid, userEmail } = req.body;
+    const { question, cardName, position, musicGenre, isDaily, category, uid, userEmail, isReread } = req.body;
 
     // ── 後端使用次數驗證 ──────────────────────────────────────────
     // 站長無限制，其他人要驗證
@@ -67,7 +67,7 @@ module.exports = async function handler(req, res) {
       return res.status(401).json({ error: "⚠️ 請先登入才能使用！" });
     }
 
-    if (userEmail !== ADMIN_EMAIL) {
+    if (userEmail !== ADMIN_EMAIL && !isReread) {
       const quota = await checkAndUpdateQuota(uid, isDaily);
       if (!quota.allowed) {
         const limitName = isDaily ? "今日塔羅神諭（1次/日）" : "AI 靈魂診斷（3次/日）";
