@@ -150,7 +150,8 @@
         };
         window.where = (field, op, val) => ({type: 'where', field, op, val});
         window.getDocs = (q) => q.get();
-        // ✅ 改用 redirect 登入，相容所有瀏覽器環境
+        // 同時支援 popup 和 redirect，由 script.js 判斷環境決定使用哪個
+        window.signInWithPopup = (auth, provider) => auth.signInWithPopup(provider);
         window.signInWithRedirect = (auth, provider) => auth.signInWithRedirect(provider);
         window.getRedirectResult = (auth) => auth.getRedirectResult();
         window.signOut = (auth) => auth.signOut();

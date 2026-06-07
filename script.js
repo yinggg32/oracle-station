@@ -115,7 +115,28 @@ document.addEventListener('DOMContentLoaded', () => {
         updateQuotaDisplay();
     });
 
-    loginBtn.onclick = () => window.signInWithRedirect(auth, new window.GoogleAuthProvider());
+    // 偵測是否在 WebView / 內嵌瀏覽器（LINE、IG、FB 等）
+    function isWebView() {
+        const ua = navigator.userAgent || '';
+        return /FBAN|FBAV|Instagram|Line|MicroMessenger|WebView|wv/.test(ua)
+            || ((/iPhone|iPod|iPad/.test(ua)) && !/Safari/.test(ua));
+    }
+
+    loginBtn.onclick = () => {
+        const provider = new window.GoogleAuthProvider();
+        if (isWebView()) {
+            // WebView 環境用 redirect
+            window.signInWithRedirect(auth, provider);
+        } else {
+            // 一般瀏覽器用 popup（體驗較好）
+            window.signInWithPopup(auth, provider).catch((err) => {
+                // popup 被擋住時自動降級到 redirect
+                if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
+                    window.signInWithRedirect(auth, provider);
+                }
+            });
+        }
+    };
     logoutBtn.onclick = () => window.signOut(auth);
 
     // 處理 redirect 登入回傳結果
