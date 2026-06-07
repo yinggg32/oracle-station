@@ -350,7 +350,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const copyBtn = document.getElementById('copy-btn');
             if (copyBtn) {
                 // 先把 prompt 組好存在按鈕的 dataset，點擊時直接讀取
-                const aiReading = modalBody ? modalBody.innerText.replace(/📖.*|🔄.*|🤖.*/g, '').trim() : '';
+                const aiReading = modalBody ? modalBody.innerText
+                    .replace(/📖[^\n]*/g, '')
+                    .replace(/🔄[^\n]*/g, '')
+                    .replace(/🤖[^\n]*/g, '')
+                    .replace(/🎵 Apple Music[^\n]*/g, '')
+                    .replace(/🎧 Spotify[^\n]*/g, '')
+                    .replace(/▶️ YouTube[^\n]*/g, '')
+                    .replace(/🎵 宇宙專屬推薦曲目[^\n]*/g, '')
+                    .replace(/\n{3,}/g, '\n\n')
+                    .trim() : '';
                 const promptText = isDaily
                     ? `我剛剛用塔羅牌占卜今日運勢，抽到了「${c.name}（${pos}）」。\n\n牌的基本含義：\n- 元素：${c.details.element}\n- 守護星：${c.details.star}\n- 核心關鍵字：${c.details.keywords}\n- ${pos === '正位' ? '正位含義：' + c.details.upright : '逆位含義：' + c.details.reversed}\n\nAI 初步解讀：\n${aiReading}\n\n請根據以上資訊，幫我做更深入的今日運勢分析，並給我三個今天可以實際執行的具體行動建議。`
                     : `我剛剛用塔羅牌占卜，問題是「${q}」，抽到了「${c.name}（${pos}）」。\n\n牌的基本含義：\n- 元素：${c.details.element}\n- 守護星：${c.details.star}\n- 核心關鍵字：${c.details.keywords}\n- ${pos === '正位' ? '正位含義：' + c.details.upright : '逆位含義：' + c.details.reversed}\n\nAI 初步解讀：\n${aiReading}\n\n請根據以上資訊，針對我的問題「${q}」做更深入的分析，並給我三個具體可執行的行動建議。`;
