@@ -280,7 +280,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // 分享文字功能
-        const shareText = `🔮 命運中轉站\n牌：${c.name}（${pos}）\n\n${aiText.replace(/<br>/g,'\n').substring(0,200)}...\n\noracle-station.vercel.app`;
+        // 把 <br> 換回換行，移除 HTML 標籤，組成純文字
+        const plainText = readingText.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '').trim();
+        const shareText = `🔮 命運中轉站\n牌：${c.name}（${pos}）\n\n${plainText}\n\noracle-station.vercel.app`;
 
         extraHtml += `
             <div class="mt-4 d-flex flex-wrap justify-content-center gap-2" data-html2canvas-ignore="true">
@@ -346,26 +348,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // 複製結果（即時從 Modal 抓純文字）
+            // 複製結果
             const copyBtn = document.getElementById('copy-btn');
             if (copyBtn) {
                 copyBtn.onclick = () => {
-                    const readingEl = modalBody.querySelector('.p-3.rounded');
-                    const cleanText = readingEl ? readingEl.innerText.trim() : "";
-                    const copyContent = `🔮 命運中轉站\n牌：${c.name}（${pos}）\n\n${cleanText}\n\noracle-station.vercel.app`;
                     const ta = document.createElement('textarea');
-                    ta.value = copyContent;
+                    ta.value = shareText;
                     ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
                     document.body.appendChild(ta);
                     ta.focus();
                     ta.select();
-                    try {
-                        document.execCommand('copy');
-                        copyBtn.innerText = '✅ 已複製！';
-                    } catch (e) {
-                        copyBtn.innerText = '❌ 複製失敗';
-                    }
+                    const ok = document.execCommand('copy');
                     document.body.removeChild(ta);
+                    copyBtn.innerText = ok ? '✅ 已複製！' : '❌ 複製失敗';
                     setTimeout(() => { copyBtn.innerText = '📋 複製結果'; }, 2000);
                 };
             }
