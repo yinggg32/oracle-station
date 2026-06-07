@@ -115,8 +115,21 @@ document.addEventListener('DOMContentLoaded', () => {
         updateQuotaDisplay();
     });
 
-    loginBtn.onclick = () => window.signInWithPopup(auth, new window.GoogleAuthProvider());
+    loginBtn.onclick = () => window.signInWithRedirect(auth, new window.GoogleAuthProvider());
     logoutBtn.onclick = () => window.signOut(auth);
+
+    // 處理 redirect 登入回傳結果
+    window.getRedirectResult(auth)
+        .then((result) => {
+            if (result && result.user) {
+                console.log("redirect 登入成功：", result.user.displayName);
+            }
+        })
+        .catch((error) => {
+            if (error.code !== 'auth/no-current-user') {
+                console.error("redirect 登入失敗：", error);
+            }
+        });
 
     // === API 呼叫 ===
     async function getAIInterpretation(question, cardName, position, musicGenre, isDaily, category) {

@@ -150,7 +150,9 @@
         };
         window.where = (field, op, val) => ({type: 'where', field, op, val});
         window.getDocs = (q) => q.get();
-        window.signInWithPopup = (auth, provider) => auth.signInWithPopup(provider);
+        // ✅ 改用 redirect 登入，相容所有瀏覽器環境
+        window.signInWithRedirect = (auth, provider) => auth.signInWithRedirect(provider);
+        window.getRedirectResult = (auth) => auth.getRedirectResult();
         window.signOut = (auth) => auth.signOut();
         window.GoogleAuthProvider = firebase.auth.GoogleAuthProvider;
         window.onAuthStateChanged = (auth, cb) => auth.onAuthStateChanged(cb);
