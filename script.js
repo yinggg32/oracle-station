@@ -335,18 +335,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
             }
 
-            // 重新解讀
+            // 重新解讀（只能用一次）
             const rereadBtn = document.getElementById('reread-btn');
             if (rereadBtn) {
-                rereadBtn.onclick = () => { processDraw("", isDaily, true, lastDrawState); };
+                if (isReread) {
+                    rereadBtn.disabled = true;
+                    rereadBtn.innerText = '🔄 已重新解讀';
+                } else {
+                    rereadBtn.onclick = () => { processDraw("", isDaily, true, lastDrawState); };
+                }
             }
 
-            // 複製結果
+            // 複製結果（即時從 Modal 抓純文字）
             const copyBtn = document.getElementById('copy-btn');
             if (copyBtn) {
                 copyBtn.onclick = () => {
+                    const readingEl = modalBody.querySelector('.p-3.rounded');
+                    const cleanText = readingEl ? readingEl.innerText.trim() : "";
+                    const copyContent = `🔮 命運中轉站\n牌：${c.name}（${pos}）\n\n${cleanText}\n\noracle-station.vercel.app`;
                     const ta = document.createElement('textarea');
-                    ta.value = shareText;
+                    ta.value = copyContent;
                     ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
                     document.body.appendChild(ta);
                     ta.focus();
