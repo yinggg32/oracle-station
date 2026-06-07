@@ -344,19 +344,21 @@ document.addEventListener('DOMContentLoaded', () => {
             // 複製結果
             const copyBtn = document.getElementById('copy-btn');
             if (copyBtn) {
-                copyBtn.onclick = async () => {
+                copyBtn.onclick = () => {
+                    const ta = document.createElement('textarea');
+                    ta.value = shareText;
+                    ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+                    document.body.appendChild(ta);
+                    ta.focus();
+                    ta.select();
                     try {
-                        await navigator.clipboard.writeText(shareText);
+                        document.execCommand('copy');
                         copyBtn.innerText = '✅ 已複製！';
-                        setTimeout(() => { copyBtn.innerText = '📋 複製結果'; }, 2000);
                     } catch (e) {
-                        // 降級方案
-                        const ta = document.createElement('textarea');
-                        ta.value = shareText; document.body.appendChild(ta);
-                        ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
-                        copyBtn.innerText = '✅ 已複製！';
-                        setTimeout(() => { copyBtn.innerText = '📋 複製結果'; }, 2000);
+                        copyBtn.innerText = '❌ 複製失敗';
                     }
+                    document.body.removeChild(ta);
+                    setTimeout(() => { copyBtn.innerText = '📋 複製結果'; }, 2000);
                 };
             }
         }, 300);
