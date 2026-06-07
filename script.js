@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 綁定 DOM
     const themeToggleBtn = document.getElementById('theme-toggle');
     const drawLotBtn = document.getElementById('draw-lot-btn');
     const shuffleBtn = document.getElementById('shuffle-btn');
@@ -16,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const dailyQuotaDisplay = document.getElementById('daily-quota-display');
     const customQuotaDisplay = document.getElementById('custom-quota-display');
 
-    // 🌟 駭客模式變數
     let titleClickCount = 0;
     let isHackerMode = false;
 
@@ -51,13 +49,13 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
 
-    // === Firebase 狀態與額度管理 ===
+    // === Firebase ===
     const auth = window.firebaseAuth;
     const db = window.firebaseDb;
     let currentUser = null;
     const ADMIN_EMAIL = "sophiayeh2394www@gmail.com";
 
-    // === 🌟 駭客密碼觸發監聽 (加入登入驗證！) ===
+    // === 駭客模式（登入驗證保留） ===
     const mysticalTitle = document.querySelector('.mystical-title');
     if (mysticalTitle) {
         mysticalTitle.style.cursor = 'pointer';
@@ -66,11 +64,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 titleClickCount++;
                 if (titleClickCount >= 7) {
                     alert("⚠️ [ACCESS DENIED]\n未授權的訪客靈魂！請先登入帳號，才能嘗試突破宇宙防火牆。");
-                    titleClickCount = 0; // 擋下來並重置次數
+                    titleClickCount = 0;
                 }
                 return;
             }
-
             titleClickCount++;
             if (titleClickCount === 7) {
                 isHackerMode = true;
@@ -80,6 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    // === 額度顯示（僅供 UI 參考，真正的關卡在後端）===
     function updateQuotaDisplay() {
         if (currentUser && currentUser.email === ADMIN_EMAIL) {
             if (dailyQuotaDisplay) dailyQuotaDisplay.innerText = "👑 站長無限模式";
@@ -98,12 +96,27 @@ document.addEventListener('DOMContentLoaded', () => {
         if (customQuotaDisplay) customQuotaDisplay.innerText = `⏳ 今日可用：${customLeft} / ${maxCustom} 次 ${isHackerMode ? '🟢 駭客模式' : ''}`;
     }
 
+    // === LocalStorage 只用來更新 UI 顯示，不做真正的擋關 ===
+    function syncLocalUsage(isDaily) {
+        if (currentUser && currentUser.email === ADMIN_EMAIL) return;
+        const today = new Date().toLocaleDateString();
+        let usageData = JSON.parse(localStorage.getItem('oracleUsage')) || {};
+        if (usageData.date !== today) usageData = { date: today, dailyCount: 0, customCount: 0 };
+        isDaily ? usageData.dailyCount += 1 : usageData.customCount += 1;
+        localStorage.setItem('oracleUsage', JSON.stringify(usageData));
+        updateQuotaDisplay();
+    }
+
     window.onAuthStateChanged(auth, (user) => {
         if (user) {
-            currentUser = user; loginBtn.classList.add('d-none'); userProfile.classList.remove('d-none');
+            currentUser = user;
+            loginBtn.classList.add('d-none');
+            userProfile.classList.remove('d-none');
             userNameDisplay.innerText = `歡迎，${user.displayName.split(' ')[0]}`;
         } else {
-            currentUser = null; loginBtn.classList.remove('d-none'); userProfile.classList.add('d-none');
+            currentUser = null;
+            loginBtn.classList.remove('d-none');
+            userProfile.classList.add('d-none');
         }
         updateQuotaDisplay();
     });
@@ -111,25 +124,44 @@ document.addEventListener('DOMContentLoaded', () => {
     loginBtn.onclick = () => window.signInWithPopup(auth, new window.GoogleAuthProvider());
     logoutBtn.onclick = () => window.signOut(auth);
 
-    function checkDrawLimit(isDaily) {
-        if (currentUser && currentUser.email === ADMIN_EMAIL) return { allowed: true };
-        const today = new Date().toLocaleDateString();
-        let usageData = JSON.parse(localStorage.getItem('oracleUsage')) || {};
-        if (usageData.date !== today) usageData = { date: today, dailyCount: 0, customCount: 0 };
+    // === API 呼叫（帶入 uid 和 userEmail 讓後端驗證）===
+    async function getAIInterpretation(question, cardName, position, musicGenre, isDaily, category) {
+        if (!currentUser) {
+            return "⚠️ 請先登入才能使用！";
+        }
+        try {
+            const response = await fetch('/api/oracle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    question,
+                    cardName,
+                    position,
+                    musicGenre,
+                    isDaily,
+                    category,
+                    uid: currentUser.uid,           // ← 新增：後端用來查 Firestore 次數
+                    userEmail: currentUser.email,   // ← 新增：後端判斷是否為站長
+                })
+            });
 
-        if (isDaily && usageData.dailyCount >= 1) return { allowed: false, message: "⏳ 【今日神諭】限抽 1 次。\n請等待今晚 12 點過後重置。" };
+            // 後端回傳 429 = 次數超過
+            if (response.status === 429) {
+                const errData = await response.json();
+                return `⏳ ${errData.error}`;
+            }
 
-        const maxCustom = isHackerMode ? 10 : 3;
-        if (!isDaily && usageData.customCount >= maxCustom) return { allowed: false, message: `⏳ 【靈魂診斷】每日 ${maxCustom} 次額度已用盡。\n請等待今晚 12 點過後重置。` };
+            const data = await response.json();
+            if (data.error) throw new Error(data.error);
 
-        return { allowed: true, usageData: usageData };
-    }
+            // 後端驗證通過才同步更新前端 LocalStorage 顯示
+            syncLocalUsage(isDaily);
 
-    function commitDrawUsage(isDaily, usageData) {
-        if (currentUser && currentUser.email === ADMIN_EMAIL) return;
-        isDaily ? usageData.dailyCount += 1 : usageData.customCount += 1;
-        localStorage.setItem('oracleUsage', JSON.stringify(usageData));
-        updateQuotaDisplay();
+            return data.text;
+        } catch (e) {
+            console.error("後端噴錯啦：", e);
+            return `伺服器無回應 ❌ 詳細錯誤：${e.message}`;
+        }
     }
 
     // === 塔羅牌庫百科 ===
@@ -158,25 +190,14 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "21. 世界 (The World)", image: "https://upload.wikimedia.org/wikipedia/commons/f/ff/RWS_Tarot_21_World.jpg", details: { element: "土系", star: "土星", keywords: "圓滿、完成、完美", upright: "達成目標、邁向更高層次。", reversed: "未完成、受困於現狀。" } }
     ];
 
-    // === API 呼叫 ===
-    async function getAIInterpretation(question, cardName, position, musicGenre, isDaily, category) {
-        try {
-            const response = await fetch('/api/oracle', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ question, cardName, position, musicGenre, isDaily, category })
-            });
-            const data = await response.json();
-            if (data.error) throw new Error(data.error);
-            return data.text;
-        } catch (e) {
-            console.error("後端噴錯啦：", e);
-            return `伺服器無回應 ❌ 詳細錯誤：${e.message}`;
-        }
-    }
-
     // === 核心抽牌邏輯 ===
     const processDraw = async (q = "", isDaily = false) => {
+        // 未登入直接擋
+        if (!currentUser) {
+            alert("請先登入才能使用！");
+            return;
+        }
+
         const c = tarotCards[Math.floor(Math.random() * tarotCards.length)];
         const isReversed = Math.random() < 0.5;
         const pos = isReversed ? "逆位" : "正位";
@@ -192,6 +213,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let aiText = await getAIInterpretation(q || "今日運勢", c.name, pos, reqMusicGenre, isDaily, cat);
 
+        // 後端回傳次數超過的錯誤訊息
+        if (aiText.startsWith("⏳")) {
+            modalTitle.innerText = "⏳ 額度已用完";
+            modalBody.innerHTML = `<div class="text-center my-4 text-warning">${aiText}</div>`;
+            return;
+        }
+
         let readingText = aiText;
         let songStr = "", luckyItem = "", luckyColor = "";
 
@@ -199,11 +227,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const songMatch = aiText.match(/🎵\s*推薦歌曲[：:]\s*(.+)/);
             const itemMatch = aiText.match(/🍀\s*幸運物[：:]\s*(.+)/);
             const colorMatch = aiText.match(/✨\s*幸運色[：:]\s*(.+)/);
-
             if (songMatch) songStr = songMatch[1].replace(/\*/g, '').trim();
             if (itemMatch) luckyItem = itemMatch[1].replace(/\*/g, '').trim();
             if (colorMatch) luckyColor = colorMatch[1].replace(/\*/g, '').trim();
-
             readingText = aiText.replace(/\|?🎵\s*推薦歌曲[：:].*/g, '').replace(/\|?🍀\s*幸運物[：:].*/g, '').replace(/\|?✨\s*幸運色[：:].*/g, '').trim().replace(/\n/g, '<br>');
         } else {
             readingText = aiText.replace(/\n/g, '<br>');
@@ -224,14 +250,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const ytLink = `https://www.youtube.com/results?search_query=${encodeURIComponent(songStr)}`;
             const appleLink = `https://music.apple.com/tw/search?term=${encodeURIComponent(songStr)}`;
             const spotifyLink = `https://open.spotify.com/search/${encodeURIComponent(songStr)}`;
-
             extraHtml += `
             <div class="mt-4 text-center">
                 <h6 class="text-info fw-bold mb-3">🎵 宇宙專屬推薦曲目：<br><span class="text-light">${songStr}</span></h6>
                 <div class="d-flex flex-wrap justify-content-center gap-2" data-html2canvas-ignore="true">
-                    <a href="${appleLink}" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-3" style="text-decoration:none;">🎵 Apple Music</a>
-                    <a href="${spotifyLink}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill px-3" style="text-decoration:none;">🎧 Spotify</a>
-                    <a href="${ytLink}" target="_blank" class="btn btn-sm btn-outline-info rounded-pill px-3" style="text-decoration:none;">▶️ YouTube</a>
+                    <a href="${appleLink}" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-3">🎵 Apple Music</a>
+                    <a href="${spotifyLink}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill px-3">🎧 Spotify</a>
+                    <a href="${ytLink}" target="_blank" class="btn btn-sm btn-outline-info rounded-pill px-3">▶️ YouTube</a>
                 </div>
             </div>`;
         }
@@ -239,18 +264,17 @@ document.addEventListener('DOMContentLoaded', () => {
         extraHtml += `
             <div class="mt-4 text-center" data-html2canvas-ignore="true">
                 <button id="open-drawer-btn" class="btn btn-sm btn-outline-warning rounded-pill px-4">📖 查看牌義詳解</button>
-            </div>
-        `;
+            </div>`;
 
         if (currentUser && !aiText.includes("❌")) {
             window.addDoc(window.collection(db, "fortuneHistory"), {
-                uid: currentUser.uid, question: q || "每日運勢", cardName: c.name, position: pos, interpretation: readingText, timestamp: new Date(),
+                uid: currentUser.uid, question: q || "每日運勢", cardName: c.name, position: pos,
+                interpretation: readingText, timestamp: new Date(),
                 mood: isDaily ? currentMood : null
             });
         }
 
         modalTitle.innerText = isDaily ? "🔮 今日塔羅神諭" : `💬 靈魂診斷 (${cat})`;
-
         modalBody.innerHTML = `
             <div class="card-container mb-3 mx-auto">
                 <div class="card-inner" id="flip-target">
@@ -262,15 +286,14 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="p-3 rounded text-start mt-3 shadow-sm" style="background:rgba(88, 166, 255, 0.1); border-left: 4px solid var(--accent-color); line-height: 1.6; word-break: break-all;">
                 ${readingText}
             </div>
-            ${extraHtml}
-        `;
+            ${extraHtml}`;
 
         setTimeout(() => document.getElementById('flip-target').classList.add('is-flipped'), 100);
         if (downloadBtn) downloadBtn.style.display = 'block';
 
         setTimeout(() => {
             const drawerBtn = document.getElementById('open-drawer-btn');
-            if(drawerBtn) {
+            if (drawerBtn) {
                 drawerBtn.onclick = () => {
                     const drawerContent = document.getElementById('drawer-content');
                     drawerContent.innerHTML = `
@@ -285,31 +308,26 @@ document.addEventListener('DOMContentLoaded', () => {
                         <h6 class="text-success fw-bold">⬆️ 正位含義</h6>
                         <p class="small mb-4" style="color: var(--text-color);">${c.details.upright}</p>
                         <h6 class="text-danger fw-bold">⬇️ 逆位含義</h6>
-                        <p class="small" style="color: var(--text-color);">${c.details.reversed}</p>
-                    `;
-                    const bsOffcanvas = new bootstrap.Offcanvas(document.getElementById('cardDetailDrawer'));
-                    bsOffcanvas.show();
+                        <p class="small" style="color: var(--text-color);">${c.details.reversed}</p>`;
+                    new bootstrap.Offcanvas(document.getElementById('cardDetailDrawer')).show();
                 };
             }
         }, 300);
     };
 
-    // === 發牌與控制 (包含彩蛋區！) ===
+    // === 發牌 ===
     const renderDeck = (container, isDaily) => {
         container.innerHTML = '';
         container.classList.add('shuffling');
-        for(let i=0; i<22; i++){
+        for (let i = 0; i < 22; i++) {
             const card = document.createElement('div');
             card.className = 'deck-card';
             card.onclick = () => {
-                const limit = checkDrawLimit(isDaily);
-                if (!limit.allowed) { alert(limit.message); return; }
-                commitDrawUsage(isDaily, limit.usageData);
                 const q = isDaily ? "" : userQuestionInput.value.trim();
                 processDraw(q, isDaily);
                 const temp = document.getElementById('temp-deck-container');
-                if(temp) temp.innerHTML = '';
-                if(!isDaily) userQuestionInput.value = '';
+                if (temp) temp.innerHTML = '';
+                if (!isDaily) userQuestionInput.value = '';
             };
             container.appendChild(card);
         }
@@ -320,35 +338,29 @@ document.addEventListener('DOMContentLoaded', () => {
     shuffleBtn.onclick = (e) => { e.preventDefault(); renderDeck(deckContainer, true); };
     updateQuotaDisplay();
 
-    // 🌟 右側按鈕：檢查是否輸入了彩蛋關鍵字
+    // === 右側按鈕：彩蛋關鍵字攔截 ===
     drawLotBtn.onclick = (e) => {
         e.preventDefault();
         const q = userQuestionInput.value.trim();
-        if(!q) return alert("請輸入妳的困惑...");
+        if (!q) return alert("請輸入妳的困惑...");
 
-        // 🌟 彩蛋 1：瑞克搖 (Rickroll)
         if (q === "放棄" || q === "想放棄") {
             alert("🌌 宇宙接收到了你的脆弱，但宇宙 Never Gonna Give You Up！");
             window.open("https://www.youtube.com/watch?v=dQw4w9WgXcQ", "_blank");
             userQuestionInput.value = '';
-            return; // 終止流程，不扣額度不打 API！
+            return;
         }
-        // 🌟 彩蛋 2：如果我是 DJ 迷因 (支援你/他/她)
         if (q.toLowerCase().includes("如果我是dj") && q.includes("還會愛我嗎")) {
             alert("🎧 [宇宙廣播頻道]\n這個問題太深奧了，宇宙沒辦法回答你，但你可以聽聽這首歌...");
             window.open("https://youtube.com/shorts/oxpTVAODHyI?si=dUPq8EdliIOy_t4S", "_blank");
             userQuestionInput.value = '';
             return;
         }
-
-        // 🌟 彩蛋 3：打破第四面牆 (AI 的老實話)
         if (q.includes("你是誰") || q.includes("你是ai") || q.includes("造物主")) {
             alert("🤖 [系統崩潰中]\n我只是一個被軟工系學生無情奴役、日夜加班的 AI 模型。\n請不要問我太難的問題，這個免費的伺服器快撐不住了...");
             userQuestionInput.value = '';
             return;
         }
-
-        // 🌟 彩蛋 4：宇宙的殘酷現實 (威力彩地獄梗)
         if (q.includes("樂透") || q.includes("威力彩") || q.includes("發財")) {
             alert("💸 [宇宙現實面]\n醒醒吧！如果宇宙真的知道這期威力彩號碼，我就不會在這裡用免費的 API 幫你算命了。\n\n不過你的專屬幸運號碼是：4、0、4、Not、Found。");
             userQuestionInput.value = '';
@@ -366,10 +378,9 @@ document.addEventListener('DOMContentLoaded', () => {
         renderDeck(document.getElementById('temp-deck'), false);
     };
 
-    // === IG 典藏風命運日曆 ===
+    // === 命運日曆 ===
     historyBtn.onclick = async () => {
         if (!currentUser) return;
-
         const modalBody = document.getElementById('history-modal-body');
         modalBody.innerHTML = '<div class="text-center my-4"><div class="spinner-border text-warning"></div><p class="text-muted mt-2">正在翻閱你的命運日曆...</p></div>';
 
@@ -393,7 +404,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const today = new Date();
         const currentYear = today.getFullYear();
         const currentMonth = today.getMonth();
-
         const firstDayOfWeek = new Date(currentYear, currentMonth, 1).getDay();
         const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
@@ -401,10 +411,9 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="mystical-calendar-wrap mb-4" style="max-width: 280px; margin: 0 auto; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 15px; border: 1px solid var(--border-color);">
                 <div class="text-center mb-3 fw-bold text-accent" style="letter-spacing: 2px;">${currentYear} 年 ${currentMonth + 1} 月</div>
                 <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; text-align: center; font-size: 0.85rem;">
-                    <div class="text-muted">日</div><div class="text-muted">一</div><div class="text-muted">二</div><div class="text-muted">三</div><div class="text-muted">四</div><div class="text-muted">五</div><div class="text-muted">六</div>
-        `;
+                    <div class="text-muted">日</div><div class="text-muted">一</div><div class="text-muted">二</div><div class="text-muted">三</div><div class="text-muted">四</div><div class="text-muted">五</div><div class="text-muted">六</div>`;
 
-        for (let i = 0; i < firstDayOfWeek; i++) { calendarHtml += `<div></div>`; }
+        for (let i = 0; i < firstDayOfWeek; i++) calendarHtml += `<div></div>`;
 
         for (let day = 1; day <= daysInMonth; day++) {
             const dateStr = `${currentYear}-${currentMonth + 1}-${day}`;
@@ -417,23 +426,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (hasRecord) {
                 dayStyle += " background: var(--accent-color); color: #000; font-weight: bold; box-shadow: 0 0 8px rgba(212, 175, 55, 0.6);";
-                if (recordMood) {
-                    innerHtml = recordMood;
-                    dayStyle += " font-size: 1.1rem;";
-                }
+                if (recordMood) { innerHtml = recordMood; dayStyle += " font-size: 1.1rem;"; }
             } else if (isToday) {
                 dayStyle += " border: 1px solid var(--text-color); opacity: 0.8;";
             } else {
                 dayStyle += " color: var(--text-color); opacity: 0.5;";
             }
-
             calendarHtml += `<div style="${dayStyle}">${innerHtml}</div>`;
         }
         calendarHtml += `</div></div>`;
 
         let listHtml = '<ul class="list-group list-group-flush border-top border-secondary pt-3">';
         if (records.length === 0) listHtml += '<li class="list-group-item bg-transparent text-muted text-center border-0">目前還沒有通靈紀錄喔！</li>';
-
         records.forEach(r => {
             const moodBadge = r.mood ? `<span class="badge bg-warning text-dark me-2">${r.mood}</span>` : "";
             listHtml += `<li class="list-group-item bg-transparent text-light border-secondary py-3">
@@ -443,7 +447,6 @@ document.addEventListener('DOMContentLoaded', () => {
             </li>`;
         });
         listHtml += '</ul>';
-
         modalBody.innerHTML = calendarHtml + listHtml;
     };
 
@@ -458,13 +461,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const originalText = downloadBtn.innerText;
             downloadBtn.innerText = "🌌 宇宙顯影中...";
             html2canvas(captureArea, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: document.body.classList.contains('light-theme') ? '#fdfdfd' : '#0d1117' })
-            .then(canvas => {
-                const link = document.createElement('a');
-                link.download = `Oracle_${Date.now()}.png`; link.href = canvas.toDataURL('image/png'); link.click();
-                downloadBtn.innerText = originalText;
-            }).catch(err => {
-                alert("截圖遭瀏覽器跨域阻擋，請使用手機截圖！"); downloadBtn.innerText = originalText;
-            });
+                .then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = `Oracle_${Date.now()}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                    downloadBtn.innerText = originalText;
+                }).catch(() => {
+                    alert("截圖遭瀏覽器跨域阻擋，請使用手機截圖！");
+                    downloadBtn.innerText = originalText;
+                });
         };
     }
 });
